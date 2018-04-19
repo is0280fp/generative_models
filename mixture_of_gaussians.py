@@ -7,7 +7,16 @@ Created on Thu Mar 29 19:38:29 2018
 
 import numpy as np
 import matplotlib.pyplot as plt
+from operator import itemgetter
 import mixture_distributions
+
+
+def gaussian_paras(x):
+    n = len(x)
+    mean = x.sum() / n
+    var = ((x - mean) ** 2).sum() / n
+    std = var ** 0.5
+    return (mean, var, std)
 
 
 if __name__ == '__main__':
@@ -43,26 +52,17 @@ if __name__ == '__main__':
     x1_lst = np.array(x1_lst)
     x2_lst = np.array(x2_lst)
 
-    n = len(x0_lst[:, 1])
-    mean = x0_lst[:, 1].sum() / n
-    var = ((x0_lst[:, 1] - mean) ** 2).sum() / n
-    std = var ** 0.5
+    mean, var, std = gaussian_paras(x0_lst[:, 1])
     mean_lst.append(mean)
     var_lst.append(var)
     std_lst.append(std)
 
-    n = len(x1_lst[:, 1])
-    mean = x1_lst[:, 1].sum() / n
-    var = ((x1_lst[:, 1] - mean) ** 2).sum() / n
-    std = var ** 0.5
+    mean, var, std = gaussian_paras(x1_lst[:, 1])
     mean_lst.append(mean)
     var_lst.append(var)
     std_lst.append(std)
 
-    n = len(x2_lst[:, 1])
-    mean = x2_lst[:, 1].sum() / n
-    var = ((x2_lst[:, 1] - mean) ** 2).sum() / n
-    std = var ** 0.5
+    mean, var, std = gaussian_paras(x2_lst[:, 1])
     mean_lst.append(mean)
     var_lst.append(var)
     std_lst.append(std)
@@ -78,7 +78,19 @@ if __name__ == '__main__':
         else:
             y2_lst.append([i, np.random.normal(mean_lst[2], std_lst[2], 1)])
 
-#    print("mean", mean_lst)
-#    print("var", var_lst)
-#    print("std", std_lst)
-#    sampler.visualize(np.array(data))
+    y_lst = []
+    for _, y in enumerate(y0_lst):
+        y_lst.append(y)
+
+    for _, y in enumerate(y1_lst):
+        y_lst.append(y)
+
+    for _, y in enumerate(y2_lst):
+        y_lst.append(y)
+
+    y = np.array(y_lst, dtype=np.float64)
+    y = sorted(y, key=itemgetter(0))
+    print("mean", mean_lst)
+    print("var", var_lst)
+    print("std", std_lst)
+    sampler.visualize(np.array(y)[:, 1])
