@@ -30,42 +30,55 @@ if __name__ == '__main__':
     x2_lst = []
     for i in np.arange(len(z)):
         if z[i] == 0:
-            x0_lst.append(x[i])
+            x0_lst.append([i, x[i]])
         elif z[i] == 1:
-            x1_lst.append(x[i])
+            x1_lst.append([i, x[i]])
         else:
-            x2_lst.append(x[i])
-
-    x0 = np.array(x0_lst)
-    x1 = np.array(x1_lst)
-    x2 = np.array(x2_lst)
-    x_lst = []
-    x_lst.append(x0)
-    x_lst.append(x1)
-    x_lst.append(x2)
+            x2_lst.append([i, x[i]])
 
     mean_lst = []
     var_lst = []
     std_lst = []
-    for i in np.arange(K):
-        n = len(x_lst[i])
-        mean = np.array(x_lst[i]).sum() / n
-        var = ((x_lst[i] - mean) ** 2).sum() / n
-        std = var ** 0.5
-        mean_lst.append(mean)
-        var_lst.append(var)
-        std_lst.append(std)
+    x0_lst = np.array(x0_lst)
+    x1_lst = np.array(x1_lst)
+    x2_lst = np.array(x2_lst)
 
-    y_lst = []
-    for i in np.arange(K):
-        y_lst.append(np.random.normal(mean_lst[i], std_lst[i], x_number[i]))
+    n = len(x0_lst[:, 1])
+    mean = x0_lst[:, 1].sum() / n
+    var = ((x0_lst[:, 1] - mean) ** 2).sum() / n
+    std = var ** 0.5
+    mean_lst.append(mean)
+    var_lst.append(var)
+    std_lst.append(std)
 
-    data = []
-    for i in np.arange(K):
-        for _, y in enumerate(y_lst[i]):
-            data.append(y)
+    n = len(x1_lst[:, 1])
+    mean = x1_lst[:, 1].sum() / n
+    var = ((x1_lst[:, 1] - mean) ** 2).sum() / n
+    std = var ** 0.5
+    mean_lst.append(mean)
+    var_lst.append(var)
+    std_lst.append(std)
 
-    print("mean", mean_lst)
-    print("var", var_lst)
-    print("std", std_lst)
-    sampler.visualize(np.array(data))
+    n = len(x2_lst[:, 1])
+    mean = x2_lst[:, 1].sum() / n
+    var = ((x2_lst[:, 1] - mean) ** 2).sum() / n
+    std = var ** 0.5
+    mean_lst.append(mean)
+    var_lst.append(var)
+    std_lst.append(std)
+
+    y0_lst = []
+    y1_lst = []
+    y2_lst = []
+    for i in np.arange(len(z)):
+        if z[i] == 0:
+            y0_lst.append([i, np.random.normal(mean_lst[0], std_lst[0], 1)])
+        elif z[i] == 1:
+            y1_lst.append([i, np.random.normal(mean_lst[1], std_lst[1], 1)])
+        else:
+            y2_lst.append([i, np.random.normal(mean_lst[2], std_lst[2], 1)])
+
+#    print("mean", mean_lst)
+#    print("var", var_lst)
+#    print("std", std_lst)
+#    sampler.visualize(np.array(data))
