@@ -100,6 +100,7 @@ if __name__ == '__main__':
         print("gy1, gy2", gy1, gy2)
         print("gy_norm:", gy_norm)
 
+    mean_a = mean_a / 1000
     print("mean_a, mean_b", mean_a, mean_b)
     i = np.arange(len(x))
     means = np.exp(mean_a * i + mean_b)
