@@ -19,13 +19,8 @@ if __name__ == '__main__':
 
     K = len(np.unique(z))  # 3
     n = len(z)
-    p1 = list(z).count(0) / n
-    p2 = list(z).count(1) / n
-    p3 = list(z).count(2) / n
-    probabilities = [p1, p2, p3]
-    x_number = []
-    for i in np.arange(K):
-        x_number.append(list(z).count(i))
+    x_number = np.bincount(z)
+    probabilities = [x_number/n]
 
     print("K:", K)
     print("p:", probabilities)
