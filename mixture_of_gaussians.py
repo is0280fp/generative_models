@@ -39,11 +39,11 @@ if __name__ == '__main__':
     x2_lst = []
     for i in np.arange(len(z)):
         if z[i] == 0:
-            x0_lst.append([i, x[i]])
+            x0_lst.append([x[i]])
         elif z[i] == 1:
-            x1_lst.append([i, x[i]])
+            x1_lst.append([x[i]])
         else:
-            x2_lst.append([i, x[i]])
+            x2_lst.append([x[i]])
 
     mean_lst = []
     var_lst = []
@@ -52,17 +52,17 @@ if __name__ == '__main__':
     x1_lst = np.array(x1_lst)
     x2_lst = np.array(x2_lst)
 
-    mean, var, std = gaussian_paras(x0_lst[:, 1])
+    mean, var, std = gaussian_paras(x0_lst)
     mean_lst.append(mean)
     var_lst.append(var)
     std_lst.append(std)
 
-    mean, var, std = gaussian_paras(x1_lst[:, 1])
+    mean, var, std = gaussian_paras(x1_lst)
     mean_lst.append(mean)
     var_lst.append(var)
     std_lst.append(std)
 
-    mean, var, std = gaussian_paras(x2_lst[:, 1])
+    mean, var, std = gaussian_paras(x2_lst)
     mean_lst.append(mean)
     var_lst.append(var)
     std_lst.append(std)
