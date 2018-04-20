@@ -61,7 +61,7 @@ if __name__ == '__main__':
     distributions = [MixtureOfGaussians(),  # 0
                      MixtureOfPoissons(),   # 1
                      ]
-    dist_type = 0
+    dist_type = 1
     complete_data = True
 
     sampler = distributions[dist_type]
