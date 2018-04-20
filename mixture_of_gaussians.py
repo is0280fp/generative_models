@@ -52,9 +52,9 @@ if __name__ == '__main__':
 #  以下、モデル生成処理
     Z = np.random.choice(K, N, p=probabilities)
 
-    mean_lst = np.array(mean_lst)
-    std_lst = np.array(std_lst)
-    y = np.random.normal(mean_lst[z], std_lst[z], N)
+    means = np.array(mean_lst)
+    stds = np.array(std_lst)
+    y = np.random.normal(means[Z], stds[Z], N)
 
 #    y = sorted(y, key=itemgetter(0))
     print("probabilities", probabilities)
