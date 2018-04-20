@@ -26,9 +26,9 @@ if __name__ == '__main__':
     print("Parameters: ", sampler.get_params())
 
     K = len(np.unique(z))  # 3
-    n = len(z)
+    N = len(z)
     x_number = np.bincount(z)
-    probabilities = np.array(x_number/n)
+    probabilities = np.array(x_number/N)
 
     print("K:", K)
     print("p:", probabilities)
