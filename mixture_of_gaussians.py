@@ -34,20 +34,17 @@ if __name__ == '__main__':
     print("K:", K)
     print("p:", probabilities)
 
-    x_lsts = []
+    xs = []
     for k in range(K):
-        xk_lst = []
-        for i in range(n):
-            if z[i] == k:
-                xk_lst.append(x[i])
-        x_lsts.append(xk_lst)
+        x_zi = x[z == k]
+        xs.append(x_zi)
 
     mean_lst = []
     var_lst = []
     std_lst = []
 
     for k in range(K):
-        mean, var, std = gaussian_paras(np.array(x_lsts[k], dtype=np.float64))
+        mean, var, std = gaussian_paras(np.array(xs[k], dtype=np.float64))
         mean_lst.append(mean)
         var_lst.append(var)
         std_lst.append(std)
