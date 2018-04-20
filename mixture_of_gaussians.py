@@ -25,6 +25,7 @@ if __name__ == '__main__':
     print("Distribution: ", sampler.get_name())
     print("Parameters: ", sampler.get_params())
 
+#  以下、パラメタ推定処理
     K = len(np.unique(z))  # 3
     N = len(z)
     x_number = np.bincount(z)
@@ -48,10 +49,13 @@ if __name__ == '__main__':
         var_lst.append(var)
         std_lst.append(std)
 
+#  以下、モデル生成処理
+    Z = np.random.choice(K, N, p=probabilities)
+
     y0_lst = []
     y1_lst = []
     y2_lst = []
-    for i in np.arange(len(z)):
+    for i in np.arange(len(Z)):
         if z[i] == 0:
             y0_lst.append([i, np.random.normal(mean_lst[0], std_lst[0], 1)])
         elif z[i] == 1:
