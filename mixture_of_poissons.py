@@ -45,7 +45,10 @@ if __name__ == '__main__':
 #  以下、モデル生成処理
     z_new = np.random.choice(K, N, p=probabilities)
     z_counts = np.bincount(z_new)
-    x_new = np.random.poisson(means[z_new], z_counts[z_new])
+    x_new_lst = []
+    for i in np.arange(len(z_new)):
+        x_new_lst.append(np.random.poisson(means[z_new][i], 1))
+    x_new = np.array(x_new_lst)
 
     print("probabilities", probabilities)
     print("mean", means)
