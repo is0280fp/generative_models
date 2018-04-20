@@ -52,31 +52,13 @@ if __name__ == '__main__':
 #  以下、モデル生成処理
     Z = np.random.choice(K, N, p=probabilities)
 
-    y0_lst = []
-    y1_lst = []
-    y2_lst = []
-    for i in np.arange(len(Z)):
-        if z[i] == 0:
-            y0_lst.append([i, np.random.normal(mean_lst[0], std_lst[0], 1)])
-        elif z[i] == 1:
-            y1_lst.append([i, np.random.normal(mean_lst[1], std_lst[1], 1)])
-        else:
-            y2_lst.append([i, np.random.normal(mean_lst[2], std_lst[2], 1)])
+    mean_lst = np.array(mean_lst)
+    std_lst = np.array(std_lst)
+    y = np.random.normal(mean_lst[z], std_lst[z], N)
 
-    y_lst = []
-    for y in y0_lst:
-        y_lst.append(y)
-
-    for y in y1_lst:
-        y_lst.append(y)
-
-    for y in y2_lst:
-        y_lst.append(y)
-
-    y = np.array(y_lst, dtype=np.float64)
-    y = sorted(y, key=itemgetter(0))
+#    y = sorted(y, key=itemgetter(0))
     print("probabilities", probabilities)
     print("mean", mean_lst)
     print("var", var_lst)
     print("std", std_lst)
-    sampler.visualize(np.array(y)[:, 1])
+    sampler.visualize(y)
