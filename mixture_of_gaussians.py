@@ -28,7 +28,7 @@ if __name__ == '__main__':
     K = len(np.unique(z))  # 3
     n = len(z)
     x_number = np.bincount(z)
-    probabilities = [x_number/n]
+    probabilities = np.array(x_number/n)
 
     print("K:", K)
     print("p:", probabilities)
@@ -71,6 +71,7 @@ if __name__ == '__main__':
 
     y = np.array(y_lst, dtype=np.float64)
     y = sorted(y, key=itemgetter(0))
+    print("probabilities", probabilities)
     print("mean", mean_lst)
     print("var", var_lst)
     print("std", std_lst)
