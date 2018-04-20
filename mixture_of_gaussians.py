@@ -12,10 +12,9 @@ import mixture_distributions
 
 
 def gaussian_paras(x):
-    n = len(x)
-    mean = x.sum() / n
-    var = ((x - mean) ** 2).sum() / n
-    std = var ** 0.5
+    mean = x.mean()
+    var = x.var()
+    std = x.std()
     return (mean, var, std)
 
 
