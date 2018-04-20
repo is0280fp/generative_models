@@ -28,8 +28,7 @@ if __name__ == '__main__':
 #  以下、パラメタ推定処理
     K = len(np.unique(z))  # 3
     N = len(z)
-    x_number = np.bincount(z)
-    probabilities = np.array(x_number/N)
+    probabilities = np.bincount(z) / N
 
     print("K:", K)
     print("p:", probabilities)
@@ -53,6 +52,7 @@ if __name__ == '__main__':
 
 #  以下、モデル生成処理
     z_new = np.random.choice(K, N, p=probabilities)
+    z_counts = np.bincount(z_new)
     x_new = np.random.normal(means[z_new], stds[z_new], N)
 
     print("probabilities", probabilities)
