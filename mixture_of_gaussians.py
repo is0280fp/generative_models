@@ -48,12 +48,11 @@ if __name__ == '__main__':
         mean_lst.append(mean)
         var_lst.append(var)
         std_lst.append(std)
+    means = np.array(mean_lst)
+    stds = np.array(std_lst)
 
 #  以下、モデル生成処理
     Z = np.random.choice(K, N, p=probabilities)
-
-    means = np.array(mean_lst)
-    stds = np.array(std_lst)
     y = np.random.normal(means[Z], stds[Z], N)
 
 #    y = sorted(y, key=itemgetter(0))
