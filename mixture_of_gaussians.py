@@ -52,12 +52,11 @@ if __name__ == '__main__':
     stds = np.array(std_lst)
 
 #  以下、モデル生成処理
-    Z = np.random.choice(K, N, p=probabilities)
-    y = np.random.normal(means[Z], stds[Z], N)
+    z_new = np.random.choice(K, N, p=probabilities)
+    x_new = np.random.normal(means[z_new], stds[z_new], N)
 
-#    y = sorted(y, key=itemgetter(0))
     print("probabilities", probabilities)
     print("mean", mean_lst)
     print("var", var_lst)
     print("std", std_lst)
-    sampler.visualize(y)
+    sampler.visualize(x_new)
