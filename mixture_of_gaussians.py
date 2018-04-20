@@ -60,13 +60,13 @@ if __name__ == '__main__':
             y2_lst.append([i, np.random.normal(mean_lst[2], std_lst[2], 1)])
 
     y_lst = []
-    for _, y in enumerate(y0_lst):
+    for y in y0_lst:
         y_lst.append(y)
 
-    for _, y in enumerate(y1_lst):
+    for y in y1_lst:
         y_lst.append(y)
 
-    for _, y in enumerate(y2_lst):
+    for y in y2_lst:
         y_lst.append(y)
 
     y = np.array(y_lst, dtype=np.float64)
