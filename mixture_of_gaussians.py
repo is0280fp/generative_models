@@ -34,38 +34,23 @@ if __name__ == '__main__':
     print("K:", K)
     print("p:", probabilities)
 
-    x0_lst = []
-    x1_lst = []
-    x2_lst = []
-    for i in np.arange(len(z)):
-        if z[i] == 0:
-            x0_lst.append([x[i]])
-        elif z[i] == 1:
-            x1_lst.append([x[i]])
-        else:
-            x2_lst.append([x[i]])
+    x_lsts = []
+    for k in range(K):
+        xk_lst = []
+        for i in range(n):
+            if z[i] == k:
+                xk_lst.append(x[i])
+        x_lsts.append(xk_lst)
 
     mean_lst = []
     var_lst = []
     std_lst = []
-    x0_lst = np.array(x0_lst)
-    x1_lst = np.array(x1_lst)
-    x2_lst = np.array(x2_lst)
 
-    mean, var, std = gaussian_paras(x0_lst)
-    mean_lst.append(mean)
-    var_lst.append(var)
-    std_lst.append(std)
-
-    mean, var, std = gaussian_paras(x1_lst)
-    mean_lst.append(mean)
-    var_lst.append(var)
-    std_lst.append(std)
-
-    mean, var, std = gaussian_paras(x2_lst)
-    mean_lst.append(mean)
-    var_lst.append(var)
-    std_lst.append(std)
+    for k in range(K):
+        mean, var, std = gaussian_paras(np.array(x_lsts[k], dtype=np.float64))
+        mean_lst.append(mean)
+        var_lst.append(var)
+        std_lst.append(std)
 
     y0_lst = []
     y1_lst = []
