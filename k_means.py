@@ -10,41 +10,78 @@ import matplotlib.pyplot as plt
 from generate_clustering_data import generate_clustering_data
 
 
-def distance_data_mean(x, mean):
-    return np.linalg.norm(x-mean)
+def distance_data(X, Y):
+    each_dis = []
+    for x, y in zip(X, Y):
+        each_dis.append(np.linalg.norm(x - y))
+    return np.array(each_dis)
+
+
+def decide_cluster(each_dis, min_dis):
+    for i in np.arange(len(each_dis)):
+        if each_dis[i] == min_dis[i]:
+            return i
+
+
+def centroid(x):
+    return np.array([x[:, 0].mean(), x[:, 1].mean()])
 
 
 if __name__ == '__main__':
     K = 4
     X = generate_clustering_data()
-    sets_cluster = []
-    cluster_mean_points_lst = []
-    prev_cluster_mean_points = np.zeros((K, 2), dtype=int)
 
-    plt.plot(X[:, 0], X[:, 1], '.')
-    plt.title('Number of clusters is 4.')
-    plt.show()
 
-    N = np.arange(len(X))
-    y = np.random.choice(N, K)
-    for i in y:
-        cluster_mean_points_lst.append(X[i])
-    cluster_mean_points = X[y]
+#    plt.plot(X[:, 0], X[:, 1], '.')
+#    plt.title('Number of clusters is 4.')
+#    plt.show()
 
-    while (prev_cluster_mean_points != cluster_mean_points).all():
-        for x in X:
-            dis_lst = []
-            for cluster_mean_point in cluster_mean_points:
-                dis_lst.append(distance_data_mean(x, cluster_mean_point))
-            cluster = np.argmin(np.array(dis_lst))
-            sets_cluster.append(cluster)
+    N, D = X.shape
+    indicas = np.random.choice(N, K, replace=False)
+#    (K, D)
+    centroids = X[indicas]
+    cluster_lst = []
+    centroids_lst = []
+    for x in centroids:
+        centroids_lst.append(x)
 
-        prev_cluster_mean_points = cluster_mean_points_lst[-K:]
+#  クラスタリング
+#  一回目のクラスタリング
+    for x in X:
+        each_dis = distance_data(np.full_like(centroids, x), centroids)
+        min_dis = each_dis.min()
+        cluster_lst.append(decide_cluster(
+                each_dis, np.full_like(each_dis, min_dis)))
+
+#  二回目以降のクラスタリング
+    j = 0
+    now_centroids = centroids_lst[-K:]
+    mat = np.zeros(2)
+    mat[:] = np.nan
+    initial_lst = []
+    for i in np.arange(K):
+        initial_lst.append(mat)
+    prev_centroids = initial_lst
+    while np.array_equal(now_centroids, prev_centroids) is False:
         for k in np.arange(K):
-            indexes = np.array(np.where(sets_cluster == k)).transpose()
-            xs = []
-            for i in indexes:
-                xs.append(X[i])
-            cluster_mean_points_lst.append(np.array(xs).mean(
-                    axis=0, dtype=np.float64))
-        cluster_mean_points = cluster_mean_points_lst[-K:]
+            indicas = np.array(np.where(np.array(
+                    cluster_lst[N*j:]) == k))[0, :]
+            cluster_xs = []
+            for i in indicas:
+                cluster_xs.append(X[i])
+            centroids_lst.append(centroid(np.array(cluster_xs)))
+        #  ここまでで、各クラスタの重心が求まった
+        for x in X:
+            each_dis = distance_data(np.full_like(
+                    np.array(centroids_lst[-K:]), x), np.array(
+                            centroids_lst[-K:]))
+            min_dis = each_dis.min()
+            cluster_lst.append(decide_cluster(
+                    each_dis, np.full_like(each_dis, min_dis)))
+
+        j += 1
+        now_centroids = centroids_lst[-K:]
+        prev_centroids = centroids_lst[-K*2:-K]
+        print("prev centroids", prev_centroids)
+        print("now centroids", now_centroids)
+        print("--------------------------------------------------------------")
