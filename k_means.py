@@ -30,12 +30,6 @@ def centroid(x):
 if __name__ == '__main__':
     K = 4
     X = generate_clustering_data()
-
-
-#    plt.plot(X[:, 0], X[:, 1], '.')
-#    plt.title('Number of clusters is 4.')
-#    plt.show()
-
     N, D = X.shape
     indicas = np.random.choice(N, K, replace=False)
 #    (K, D)
@@ -55,14 +49,18 @@ if __name__ == '__main__':
 
 #  二回目以降のクラスタリング
     j = 0
+#  現在のクラスタリング重心
     now_centroids = centroids_lst[-K:]
+#  １ステップ前のクラスタリング重心
     mat = np.zeros(2)
     mat[:] = np.nan
     initial_lst = []
     for i in np.arange(K):
         initial_lst.append(mat)
     prev_centroids = initial_lst
+#  1ステップ前と現在のクラスタリング重心を比較、同じであればクラスタリング終了
     while np.array_equal(now_centroids, prev_centroids) is False:
+        #  各クラスタの重心が求める
         for k in np.arange(K):
             indicas = np.array(np.where(np.array(
                     cluster_lst[N*j:]) == k))[0, :]
@@ -70,7 +68,7 @@ if __name__ == '__main__':
             for i in indicas:
                 cluster_xs.append(X[i])
             centroids_lst.append(centroid(np.array(cluster_xs)))
-        #  ここまでで、各クラスタの重心が求まった
+        #  重心を基にデータをクラスタリングしなおす
         for x in X:
             each_dis = distance_data(np.full_like(
                     np.array(centroids_lst[-K:]), x), np.array(
@@ -79,12 +77,15 @@ if __name__ == '__main__':
             cluster_lst.append(decide_cluster(
                     each_dis, np.full_like(each_dis, min_dis)))
 
+        #  ステップ数とクラスタリング重心の更新
         j += 1
         now_centroids = centroids_lst[-K:]
         prev_centroids = centroids_lst[-K*2:-K]
+        #  クラスタリング重心の表示
         print("prev centroids", prev_centroids)
         print("now centroids", now_centroids)
         print("--------------------------------------------------------------")
+
 #  クラスタリング結果描画
     for k in np.arange(K):
         indicas = np.array(np.where(np.array(cluster_lst[-N:]) == k))[0, :]
