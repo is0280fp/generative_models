@@ -85,3 +85,10 @@ if __name__ == '__main__':
         print("prev centroids", prev_centroids)
         print("now centroids", now_centroids)
         print("--------------------------------------------------------------")
+#  クラスタリング結果描画
+    for k in np.arange(K):
+        indicas = np.array(np.where(np.array(cluster_lst[-N:]) == k))[0, :]
+        plt.plot(X[indicas][:, 0], X[indicas][:, 1])
+    plt.xlabel("Dim1")
+    plt.ylabel("Dim2")
+    plt.show()
