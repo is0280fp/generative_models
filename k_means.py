@@ -32,33 +32,33 @@ if __name__ == '__main__':
     X = generate_clustering_data()
     N, D = X.shape
     indicas = np.random.choice(N, K, replace=False)
-#    (K, D)
+    #    (K, D)
     centroids = X[indicas]
     cluster_lst = []
     centroids_lst = []
     for x in centroids:
         centroids_lst.append(x)
 
-#  クラスタリング
-#  一回目のクラスタリング
+    #  クラスタリング
+    #  一回目のクラスタリング
     for x in X:
         each_dis = distance_data(np.full_like(centroids, x), centroids)
         min_dis = each_dis.min()
         cluster_lst.append(decide_cluster(
                 each_dis, np.full_like(each_dis, min_dis)))
 
-#  二回目以降のクラスタリング
+    #  二回目以降のクラスタリング
     j = 0
-#  現在のクラスタリング重心
+    #  現在のクラスタリング重心
     now_centroids = centroids_lst[-K:]
-#  １ステップ前のクラスタリング重心
+    #  １ステップ前のクラスタリング重心
     mat = np.zeros(2)
     mat[:] = np.nan
     initial_lst = []
     for i in np.arange(K):
         initial_lst.append(mat)
     prev_centroids = initial_lst
-#  1ステップ前と現在のクラスタリング重心を比較、同じであればクラスタリング終了
+    #  1ステップ前と現在のクラスタリング重心を比較、同じであればクラスタリング終了
     while np.array_equal(now_centroids, prev_centroids) is False:
         #  各クラスタの重心が求める
         for k in np.arange(K):
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         print("now centroids", now_centroids)
         print("--------------------------------------------------------------")
 
-#  クラスタリング結果描画
+    #  クラスタリング結果描画
     for k in np.arange(K):
         indicas = np.array(np.where(np.array(cluster_lst[-N:]) == k))[0, :]
         plt.plot(X[indicas][:, 0], X[indicas][:, 1], ".")
