@@ -24,7 +24,7 @@ def decide_cluster(each_dis, min_dis):
 
 
 def centroid(x):
-    return np.array([x[:, 0].mean(), x[:, 1].mean()])
+    return x.mean(0)
 
 
 if __name__ == '__main__':
@@ -33,11 +33,9 @@ if __name__ == '__main__':
     N, D = X.shape
     indicas = np.random.choice(N, K, replace=False)
     #    (K, D)
+    #  現在のクラスタリング重心
     centroids = X[indicas]
     cluster_lst = []
-    centroids_lst = []
-    for x in centroids:
-        centroids_lst.append(x)
 
     #  クラスタリング
     #  一回目のクラスタリング
@@ -49,18 +47,16 @@ if __name__ == '__main__':
 
     #  二回目以降のクラスタリング
     j = 0
-    #  現在のクラスタリング重心
-    now_centroids = centroids_lst[-K:]
     #  １ステップ前のクラスタリング重心
-    mat = np.zeros(2)
+    mat = np.zeros((4, 2))
     mat[:] = np.nan
-    initial_lst = []
-    for i in np.arange(K):
-        initial_lst.append(mat)
-    prev_centroids = initial_lst
+    prev_centroids = mat
     #  1ステップ前と現在のクラスタリング重心を比較、同じであればクラスタリング終了
-    while np.array_equal(now_centroids, prev_centroids) is False:
+    while np.array_equal(centroids, prev_centroids) is False:
+        prev_centroids = centroids
+
         #  各クラスタの重心が求める
+        centroids_lst = []
         for k in np.arange(K):
             indicas = np.array(np.where(np.array(
                     cluster_lst[N*j:]) == k))[0, :]
@@ -68,22 +64,20 @@ if __name__ == '__main__':
             for i in indicas:
                 cluster_xs.append(X[i])
             centroids_lst.append(centroid(np.array(cluster_xs)))
+        centroids = np.array(centroids_lst)
+
         #  重心を基にデータをクラスタリングしなおす
         for x in X:
-            each_dis = distance_data(np.full_like(
-                    np.array(centroids_lst[-K:]), x), np.array(
-                            centroids_lst[-K:]))
+            each_dis = distance_data(np.full_like(centroids, x), centroids)
             min_dis = each_dis.min()
             cluster_lst.append(decide_cluster(
                     each_dis, np.full_like(each_dis, min_dis)))
 
-        #  ステップ数とクラスタリング重心の更新
+        #  ステップ数の更新
         j += 1
-        now_centroids = centroids_lst[-K:]
-        prev_centroids = centroids_lst[-K*2:-K]
         #  クラスタリング重心の表示
         print("prev centroids", prev_centroids)
-        print("now centroids", now_centroids)
+        print("now centroids", centroids)
         print("--------------------------------------------------------------")
 
     #  クラスタリング結果描画
