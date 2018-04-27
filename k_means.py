@@ -10,11 +10,9 @@ import matplotlib.pyplot as plt
 from generate_clustering_data import generate_clustering_data
 
 
-def distance_data(X, Y):
-    each_dis = []
-    for x, y in zip(X, Y):
-        each_dis.append(np.linalg.norm(x - y))
-    return np.array(each_dis)
+def distance_data(x, y):
+    each_dis = np.linalg.norm(x - y, axis=1)
+    return each_dis
 
 
 def decide_cluster(each_dis, min_dis):
@@ -40,7 +38,7 @@ if __name__ == '__main__':
     #  クラスタリング
     #  一回目のクラスタリング
     for x in X:
-        each_dis = distance_data(np.full_like(centroids, x), centroids)
+        each_dis = distance_data(x, centroids)
         min_dis = each_dis.min()
         cluster_lst.append(decide_cluster(
                 each_dis, np.full_like(each_dis, min_dis)))
@@ -68,7 +66,7 @@ if __name__ == '__main__':
 
         #  重心を基にデータをクラスタリングしなおす
         for x in X:
-            each_dis = distance_data(np.full_like(centroids, x), centroids)
+            each_dis = distance_data(x, centroids)
             min_dis = each_dis.min()
             cluster_lst.append(decide_cluster(
                     each_dis, np.full_like(each_dis, min_dis)))
