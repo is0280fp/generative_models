@@ -17,12 +17,6 @@ def distance_data(X, centroids):
     return np.array(each_dis)
 
 
-def decide_cluster(each_dis, min_dis):
-    for i in np.arange(len(each_dis)):
-        if each_dis[i] == min_dis[i]:
-            return i
-
-
 if __name__ == '__main__':
     K = 4
     X = generate_clustering_data()
