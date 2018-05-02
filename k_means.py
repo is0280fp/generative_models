@@ -10,19 +10,17 @@ import matplotlib.pyplot as plt
 from generate_clustering_data import generate_clustering_data
 
 
-def distance_data(x, y):
-    each_dis = np.linalg.norm(x - y, axis=1)
-    return each_dis
+def distance_data(X, centroids):
+    each_dis = []
+    for x in X:
+        each_dis.append(np.linalg.norm(x - centroids, axis=1))
+    return np.array(each_dis)
 
 
 def decide_cluster(each_dis, min_dis):
     for i in np.arange(len(each_dis)):
         if each_dis[i] == min_dis[i]:
             return i
-
-
-def centroid(x):
-    return x.mean(0)
 
 
 if __name__ == '__main__':
@@ -33,22 +31,17 @@ if __name__ == '__main__':
     #    (K, D)
     #  現在のクラスタリング重心
     centroids = X[indicas]
-    cluster_lst = []
 
     #  クラスタリング
     #  一回目のクラスタリング
-    for x in X:
-        each_dis = distance_data(x, centroids)
-        min_dis = each_dis.min()
-        cluster_lst.append(decide_cluster(
-                each_dis, np.full_like(each_dis, min_dis)))
+    each_dis = distance_data(X, centroids)
+    clusters = each_dis.argmin(axis=1)
 
     #  二回目以降のクラスタリング
     j = 0
     #  １ステップ前のクラスタリング重心
-    mat = np.zeros((4, 2))
-    mat[:] = np.nan
-    prev_centroids = mat
+    prev_centroids = np.zeros((K, D))
+    prev_centroids[:] = np.nan
     #  1ステップ前と現在のクラスタリング重心を比較、同じであればクラスタリング終了
     while np.array_equal(centroids, prev_centroids) is False:
         prev_centroids = centroids
@@ -56,20 +49,13 @@ if __name__ == '__main__':
         #  各クラスタの重心が求める
         centroids_lst = []
         for k in np.arange(K):
-            indicas = np.array(np.where(np.array(
-                    cluster_lst[N*j:]) == k))[0, :]
-            cluster_xs = []
-            for i in indicas:
-                cluster_xs.append(X[i])
-            centroids_lst.append(centroid(np.array(cluster_xs)))
+            cluster_xs = X[clusters == k]
+            centroids_lst.append(cluster_xs.mean(axis=0))
         centroids = np.array(centroids_lst)
 
         #  重心を基にデータをクラスタリングしなおす
-        for x in X:
-            each_dis = distance_data(x, centroids)
-            min_dis = each_dis.min()
-            cluster_lst.append(decide_cluster(
-                    each_dis, np.full_like(each_dis, min_dis)))
+        each_dis = distance_data(X, centroids)
+        clusters = each_dis.argmin(axis=1)
 
         #  ステップ数の更新
         j += 1
@@ -80,8 +66,7 @@ if __name__ == '__main__':
 
     #  クラスタリング結果描画
     for k in np.arange(K):
-        indicas = np.array(np.where(np.array(cluster_lst[-N:]) == k))[0, :]
-        plt.plot(X[indicas][:, 0], X[indicas][:, 1], ".")
+        plt.plot(X[clusters == k][:, 0], X[clusters == k][:, 1], ".")
     plt.xlabel("Dim1")
     plt.ylabel("Dim2")
     plt.show()
