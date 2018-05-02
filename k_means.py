@@ -50,7 +50,7 @@ if __name__ == '__main__':
     #  クラスタリング結果描画
     for k in np.arange(K):
         plt.plot(X[clusters == k][:, 0], X[clusters == k][:, 1], ".")
-        plt.plot(centroids[0:, 0], centroids[0:, 1], "*")
+    plt.plot(centroids[:, 0], centroids[:, 1], "*")
     plt.xlabel("Dim1")
     plt.ylabel("Dim2")
     plt.show()
