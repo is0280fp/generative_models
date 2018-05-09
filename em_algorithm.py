@@ -32,22 +32,23 @@ if __name__ == '__main__':
 #    print("Parameters: ", sampler.get_params())
 
     K = 3
-    N = X.shape
+    N = X.shape[0]
     #    パラメタ初期値設定
     mean_k = np.arange(1, K+1)
     sigma_k = np.arange(1, K+1)
     pi_k = np.arange(1, K+1)
     #    パラメタ初期値での対数尤度
     lkh_k = likehood_function(X, mean_k, sigma_k, pi_k)
-    log_lkh = np.log(lkh_k.sum()).sum()
-    prev_log_lkh = np.log(lkh_k.sum()).sum()
+    log_lkh = np.log(lkh_k.sum(axis=0)).sum()
+    prev_log_lkh = np.log(lkh_k.sum(axis=0)).sum()
 
     while True:
-        prev_log_lkh = np.log(lkh_k.sum()).sum()
+        assert prev_log_lkh <= log_lkh
+        prev_log_lkh = np.log(lkh_k.sum(axis=0)).sum()
 
         #  Eステップ(負担率の計算)
         ganma_lst = []
-        lkhs = lkh_k.sum()
+        lkhs = lkh_k.sum(axis=0)
         for i in np.arange(K):
             ganma_lst.append(lkh_k[i]/lkhs)
 
@@ -73,7 +74,7 @@ if __name__ == '__main__':
         lkh_k = likehood_function(X, mean_k, sigma_k, pi_k)
 
         #  対数尤度の計算
-        log_lkh = np.log(lkh_k.sum()).sum()
+        log_lkh = np.log(lkh_k.sum(axis=0)).sum()
 
         #  対数尤度の出力
         print("prev log-like-hood", prev_log_lkh)
@@ -85,19 +86,17 @@ if __name__ == '__main__':
         #  各ガウス分布の描画
         std_k = sigma_k ** 0.5
         for k in np.arange(K):
-            data = np.random.normal(
-                    mean_k[k], std_k[k],
-                    np.int64(np.round(pi_k[k]*np.float64(N))))
+            data = np.random.normal(mean_k[k], std_k[k], N)
             hist(data)
         plt.title("each like-hood")
         plt.show()
 
         #  負担率を表現したデータ
-        ganmas = np.array(ganma_lst)
-        for i in np.arange(N[0]):
-            plt.bar(X[i], ganmas[:, i][0], color='b')
-            plt.bar(X[i], ganmas[:, i][1], color='g')
-            plt.bar(X[i], ganmas[:, i][2], color='r')
-        plt.xlim(X.min(), X.max())
-        plt.show()
+#        ganmas = np.array(ganma_lst)
+#        for i in np.arange(N):
+#            plt.bar(X[i], ganmas[:, i][0], color='b')
+#            plt.bar(X[i], ganmas[:, i][1], color='g')
+#            plt.bar(X[i], ganmas[:, i][2], color='r')
+#        plt.xlim(X.min(), X.max())
+#        plt.show()
         print("-----------------------------------------------------------------------")
