@@ -24,24 +24,9 @@ def hist(data):
     plt.hist(data, bins=bins, range=(x_min, x_max))
 
 
-def calc_prob_gmm(data, mu, sigma, pi, K):
-    return [[pi[k]*st.multivariate_normal.pdf(d, mu[k], sigma[k]) for k in range(K)] for d in data]
-
-
-def print_gmm_contour(x, mu, sigma, pi, K):
-    # display predicted scores by the model as a contour plot
-    X, Y = np.meshgrid(np.linspace(x[:, 0].min(), x[:, 0].max()),
-                       np.linspace(x[:, 1].min(), x[:, 1].max()))
-    XX = np.array([X.ravel(), Y.ravel()]).T
-    Z = np.sum(np.asanyarray(calc_prob_gmm(XX, mu, sigma, pi, K)), axis=1)
-    Z = Z.reshape(X.shape)
-    plt.contour(X, Y, Z, alpha=0.2, zorder=-100)
-    plt.title('pdf contour of a GMM')
-
-
 if __name__ == '__main__':
     sampler = mixture_distributions.MixtureOfGaussians()
-    X = sampler(10000, complete_data=False)
+    X = sampler(1000, complete_data=False)
 #    sampler.visualize(X)
 #    print("Distribution: ", sampler.get_name())
 #    print("Parameters: ", sampler.get_params())
@@ -54,41 +39,41 @@ if __name__ == '__main__':
     pi_k = np.arange(1, K+1)
     #    パラメタ初期値での対数尤度
     lkh_k = likehood_function(X, mean_k, sigma_k, pi_k)
-    log_lkh = np.log(lkh_k.sum(axis=0)).sum(axis=0)
-    prev_log_lkh = np.log(lkh_k.sum(axis=0)).sum(axis=0)
+    log_lkh = np.log(lkh_k.sum()).sum()
+    prev_log_lkh = np.log(lkh_k.sum()).sum()
 
     while True:
-        prev_log_lkh = np.log(lkh_k.sum(axis=0)).sum(axis=0)
+        prev_log_lkh = np.log(lkh_k.sum()).sum()
 
         #  Eステップ(負担率の計算)
         ganma_lst = []
-        lkhs = lkh_k.sum(axis=0)
+        lkhs = lkh_k.sum()
         for i in np.arange(K):
             ganma_lst.append(lkh_k[i]/lkhs)
 
         #  Mステップ(パラメタ値を再計算)
         N_k_lst = []
         for i in np.arange(K):
-            N_k_lst.append(ganma_lst[i].sum(axis=0))
+            N_k_lst.append(ganma_lst[i].sum())
         N_k = np.array(N_k_lst)
 
         mean_k_lst = []
         for i in np.arange(K):
-            mean_k_lst.append((ganma_lst[i] * X).sum(axis=0) / N_k[i])
+            mean_k_lst.append((ganma_lst[i] * X).sum() / N_k[i])
         mean_k = np.array(mean_k_lst)
 
         sigma_k_lst = []
         for i in np.arange(K):
             sigma_k_lst.append((
                     ganma_lst[i] * (X - mean_k[i]) * (
-                            X - mean_k[i]).transpose()).sum(axis=0) / N_k[i])
+                            X - mean_k[i]).transpose()).sum() / N_k[i])
         sigma_k = np.array(sigma_k_lst)
 
-        pi_k = N_k / N_k.sum(axis=0)
+        pi_k = N_k / N_k.sum()
         lkh_k = likehood_function(X, mean_k, sigma_k, pi_k)
 
         #  対数尤度の計算
-        log_lkh = np.log(lkh_k.sum(axis=0)).sum(axis=0)
+        log_lkh = np.log(lkh_k.sum()).sum()
 
         #  対数尤度の出力
         print("prev log-like-hood", prev_log_lkh)
@@ -108,5 +93,11 @@ if __name__ == '__main__':
         plt.show()
 
         #  負担率を表現したデータ
-        print_gmm_contour(X, mean_k, sigma_k, pi_k, K)
+        ganmas = np.array(ganma_lst)
+        for i in np.arange(N[0]):
+            plt.bar(X[i], ganmas[:, i][0], color='b')
+            plt.bar(X[i], ganmas[:, i][1], color='g')
+            plt.bar(X[i], ganmas[:, i][2], color='r')
+        plt.xlim(X.min(), X.max())
+        plt.show()
         print("-----------------------------------------------------------------------")
