@@ -52,7 +52,7 @@ class Gaussian(ProbabilityDistribution):
         self.std = std
 
     def __call__(self, num_examples=10000):
-        return np.random.normal(self.mean, self.std, num_examples)
+        return np.random.normal(self.mean, self.std, (num_examples, 2))
 
 
 class Poisson(ProbabilityDistribution):
