@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Apr 23 12:30:17 2018
-
 @author: yume
+パターン認識と機械学習　下
+p.154-155参照
 """
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,6 +14,9 @@ import mixture_distributions
 
 
 def ganma(x, mean_k, var_k, pi_k):
+    """
+    式(9.23)
+    """
     lkh = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
         lkh.append(pi * np.exp(-(x-mean)**2/2*var) / (2*np.pi*var)**0.5)
@@ -21,6 +26,9 @@ def ganma(x, mean_k, var_k, pi_k):
 
 
 def loglikelihood(x, mean_k, var_k, pi_k):
+    """
+    式(9.28)
+    """
     lkh_lst = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
         lkh_lst.append(pi * np.exp(-(x-mean)**2/2*var) / (2*np.pi*var)**0.5)
@@ -58,22 +66,26 @@ if __name__ == '__main__':
         ganmas = ganma(X, mean_k, var_k, pi_k)
 
         #  Mステップ(パラメタ値を再計算)
+        #  式(9.27)
         N_k = []
         for k in np.arange(K):
             N_k.append(ganmas[k].sum())
         N_k = np.array(N_k)
 
         mean_k = []
+        #  式(9.24)
         for ganma_k, n_k in zip(ganmas, N_k):
             mean_k.append((ganma_k * X).sum() / n_k)
         mean_k = np.array(mean_k)
 
         var_k = []
+        #  式(9.25)
         for ganma_k, n_k, mean in zip(ganmas, N_k, mean_k):
             var_k.append((
                     ganma_k * (X - mean) * (X - mean).transpose()).sum() / n_k)
         var_k = np.array(var_k)
 
+        #  式(9.26)
         pi_k = N_k / N_k.sum()
 
         #  対数尤度の計算
