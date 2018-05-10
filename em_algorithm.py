@@ -14,7 +14,7 @@ import mixture_distributions
 def likehood_function(x, mean_k, var_k, pi_k):
     lkh_lst = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        lkh_lst.append(pi * np.exp(-(X-mean)**2/2*var) / (2*np.pi*var)**0.5)
+        lkh_lst.append(pi * np.exp(-(x-mean)**2/2*var) / (2*np.pi*var)**0.5)
     return np.array(lkh_lst, dtype=np.float64)
 
 
@@ -49,25 +49,24 @@ if __name__ == '__main__':
         #  Eステップ(負担率の計算)
         ganma_lst = []
         lkhs = lkh_k.sum(axis=0)
-        for i in np.arange(K):
-            ganma_lst.append(lkh_k[i]/lkhs)
+        for k in np.arange(K):
+            ganma_lst.append(lkh_k[k]/lkhs)
 
         #  Mステップ(パラメタ値を再計算)
         N_k_lst = []
-        for i in np.arange(K):
-            N_k_lst.append(ganma_lst[i].sum())
+        for k in np.arange(K):
+            N_k_lst.append(ganma_lst[k].sum())
         N_k = np.array(N_k_lst)
 
         mean_k_lst = []
-        for i in np.arange(K):
-            mean_k_lst.append((ganma_lst[i] * X).sum() / N_k[i])
+        for ganma, n_k in zip(ganma_lst, N_k):
+            mean_k_lst.append((ganma * X).sum() / n_k)
         mean_k = np.array(mean_k_lst)
 
         var_k_lst = []
-        for i in np.arange(K):
+        for ganma, n_k, mean in zip(ganma_lst, N_k, mean_k):
             var_k_lst.append((
-                    ganma_lst[i] * (X - mean_k[i]) * (
-                            X - mean_k[i]).transpose()).sum() / N_k[i])
+                    ganma * (X - mean) * (X - mean).transpose()).sum() / n_k)
         var_k = np.array(var_k_lst)
 
         pi_k = N_k / N_k.sum()
