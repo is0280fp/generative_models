@@ -14,7 +14,7 @@ import mixture_distributions
 def likehood_function(x, mean_k, var_k, pi_k):
     lkh_lst = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        lkh_lst.append(np.exp(-(X-mean)**2/2*var) / (2*np.pi*var)**0.5)
+        lkh_lst.append(pi * np.exp(-(X-mean)**2/2*var) / (2*np.pi*var)**0.5)
     return np.array(lkh_lst, dtype=np.float64)
 
 
