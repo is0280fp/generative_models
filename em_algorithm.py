@@ -11,11 +11,20 @@ from scipy import stats as st
 import mixture_distributions
 
 
-def likehood_function(x, mean_k, var_k, pi_k):
+def ganma(x, mean_k, var_k, pi_k):
+    lkh = []
+    for mean, var, pi in zip(mean_k, var_k, pi_k):
+        lkh.append(pi * np.exp(-(x-mean)**2/2*var) / (2*np.pi*var)**0.5)
+    lkh = np.array(lkh)
+    lkhs = np.sum(lkh, 0)
+    return lkh/lkhs
+
+
+def loglikelihood(x, mean_k, var_k, pi_k):
     lkh_lst = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
         lkh_lst.append(pi * np.exp(-(x-mean)**2/2*var) / (2*np.pi*var)**0.5)
-    return np.array(lkh_lst, dtype=np.float64)
+    return np.sum(np.log(np.sum(lkh_lst, 0)))
 
 
 def hist(data):
@@ -38,42 +47,37 @@ if __name__ == '__main__':
     var_k = np.arange(1, K+1)
     pi_k = np.random.dirichlet([1] * K)
     #    パラメタ初期値での対数尤度
-    lkh_k = likehood_function(X, mean_k, var_k, pi_k)
-    log_lkh = np.log(lkh_k.sum(axis=0)).sum()
-    prev_log_lkh = np.log(lkh_k.sum(axis=0)).sum()
+    log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
+    prev_log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
     while True:
         assert prev_log_lkh <= log_lkh
-        prev_log_lkh = np.log(lkh_k.sum(axis=0)).sum()
+        prev_log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
         #  Eステップ(負担率の計算)
-        ganma_lst = []
-        lkhs = lkh_k.sum(axis=0)
-        for k in np.arange(K):
-            ganma_lst.append(lkh_k[k]/lkhs)
+        ganmas = ganma(X, mean_k, var_k, pi_k)
 
         #  Mステップ(パラメタ値を再計算)
-        N_k_lst = []
+        N_k = []
         for k in np.arange(K):
-            N_k_lst.append(ganma_lst[k].sum())
-        N_k = np.array(N_k_lst)
+            N_k.append(ganmas[k].sum())
+        N_k = np.array(N_k)
 
-        mean_k_lst = []
-        for ganma, n_k in zip(ganma_lst, N_k):
-            mean_k_lst.append((ganma * X).sum() / n_k)
-        mean_k = np.array(mean_k_lst)
+        mean_k = []
+        for ganma_k, n_k in zip(ganmas, N_k):
+            mean_k.append((ganma_k * X).sum() / n_k)
+        mean_k = np.array(mean_k)
 
-        var_k_lst = []
-        for ganma, n_k, mean in zip(ganma_lst, N_k, mean_k):
-            var_k_lst.append((
-                    ganma * (X - mean) * (X - mean).transpose()).sum() / n_k)
-        var_k = np.array(var_k_lst)
+        var_k = []
+        for ganma_k, n_k, mean in zip(ganmas, N_k, mean_k):
+            var_k.append((
+                    ganma_k * (X - mean) * (X - mean).transpose()).sum() / n_k)
+        var_k = np.array(var_k)
 
         pi_k = N_k / N_k.sum()
-        lkh_k = likehood_function(X, mean_k, var_k, pi_k)
 
         #  対数尤度の計算
-        log_lkh = np.log(lkh_k.sum(axis=0)).sum()
+        log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
         #  対数尤度の出力
         print("prev log-like-hood", prev_log_lkh)
