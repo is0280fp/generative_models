@@ -36,7 +36,7 @@ if __name__ == '__main__':
     #    パラメタ初期値設定
     mean_k = np.arange(1, K+1)
     sigma_k = np.arange(1, K+1)
-    pi_k = np.arange(1, K+1)
+    pi_k = np.random.dirichlet([1] * K)
     #    パラメタ初期値での対数尤度
     lkh_k = likehood_function(X, mean_k, sigma_k, pi_k)
     log_lkh = np.log(lkh_k.sum(axis=0)).sum()
