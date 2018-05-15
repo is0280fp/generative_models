@@ -9,7 +9,7 @@ p.154-155参照
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats as st
+from scipy.special import logsumexp
 import mixture_distributions
 
 
@@ -17,22 +17,27 @@ def ganma(x, mean_k, var_k, pi_k):
     """
     式(9.23)
     """
-    lkh = []
+    log_lkh = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        lkh.append(pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5)
-    lkh = np.array(lkh)
-    lkhs = np.sum(lkh, 0)
-    return lkh/lkhs
+        log_lkh.append(np.log(
+                pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5))
+    log_lkh = np.array(log_lkh)
+    log_lkhs = logsumexp(log_lkh)
+    log_noramlized_lkh = log_lkh - log_lkhs
+    return np.exp(log_noramlized_lkh)
 
 
 def loglikelihood(x, mean_k, var_k, pi_k):
     """
     式(9.28)
     """
-    lkh_lst = []
+    log_lkh = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        lkh_lst.append(pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5)
-    return np.sum(np.log(np.sum(lkh_lst, 0)))
+        log_lkh.append(np.log(
+                pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5))
+    log_lkh = np.array(log_lkh)
+    log_lkhs = logsumexp(log_lkh)
+    return np.sum(log_lkhs)
 
 
 def hist(data):
