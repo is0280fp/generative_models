@@ -13,14 +13,17 @@ from scipy.special import logsumexp
 import mixture_distributions
 
 
+def gaussian_pdf(x, mean, var, pi):
+    return pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5
+
+
 def ganma(x, mean_k, var_k, pi_k):
     """
     式(9.23)
     """
     log_lkh = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        log_lkh.append(np.log(
-                pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5))
+        log_lkh.append(np.log(gaussian_pdf(x, mean, var, pi)))
     log_lkh = np.array(log_lkh)
     log_lkhs = logsumexp(log_lkh)
     log_noramlized_lkh = log_lkh - log_lkhs
@@ -33,8 +36,7 @@ def loglikelihood(x, mean_k, var_k, pi_k):
     """
     log_lkh = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        log_lkh.append(np.log(
-                pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5))
+        log_lkh.append(np.log(gaussian_pdf(x, mean, var, pi)))
     log_lkh = np.array(log_lkh)
     log_lkhs = logsumexp(log_lkh)
     return np.sum(log_lkhs)
