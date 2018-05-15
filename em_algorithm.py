@@ -13,33 +13,30 @@ from scipy.special import logsumexp
 import mixture_distributions
 
 
-def gaussian_pdf(x, mean, var, pi):
-    return pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5
+def gaussian_pdf(x, mean, var):
+    return np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5
 
 
-def ganma(x, mean_k, var_k, pi_k):
+def gamma(x, mean_k, var_k, pi_k):
     """
     式(9.23)
     """
-    log_lkh = []
+    lkh = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        log_lkh.append(np.log(gaussian_pdf(x, mean, var, pi)))
-    log_lkh = np.array(log_lkh)
-    log_lkhs = logsumexp(log_lkh)
-    log_noramlized_lkh = log_lkh - log_lkhs
-    return np.exp(log_noramlized_lkh)
+        lkh.append(pi * gaussian_pdf(x, mean, var))
+    lkh = np.array(lkh)
+    lkhs = np.sum(lkh, 0)
+    return lkh/lkhs
 
 
 def loglikelihood(x, mean_k, var_k, pi_k):
     """
     式(9.28)
     """
-    log_lkh = []
+    lkh_lst = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        log_lkh.append(np.log(gaussian_pdf(x, mean, var, pi)))
-    log_lkh = np.array(log_lkh)
-    log_lkhs = logsumexp(log_lkh)
-    return np.sum(log_lkhs)
+        lkh_lst.append(pi * gaussian_pdf(x, mean, var))
+    return np.sum(np.log(np.sum(lkh_lst, 0)))
 
 
 def hist(data):
@@ -70,26 +67,26 @@ if __name__ == '__main__':
         prev_log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
         #  Eステップ(負担率の計算)
-        ganmas = ganma(X, mean_k, var_k, pi_k)
+        gammas = gamma(X, mean_k, var_k, pi_k)
 
         #  Mステップ(パラメタ値を再計算)
         #  式(9.27)
         N_k = []
         for k in np.arange(K):
-            N_k.append(ganmas[k].sum())
+            N_k.append(gammas[k].sum())
         N_k = np.array(N_k)
 
         mean_k = []
         #  式(9.24)
-        for ganma_k, n_k in zip(ganmas, N_k):
-            mean_k.append((ganma_k * X).sum() / n_k)
+        for gamma_k, n_k in zip(gammas, N_k):
+            mean_k.append((gamma_k * X).sum() / n_k)
         mean_k = np.array(mean_k)
 
         var_k = []
         #  式(9.25)
-        for ganma_k, n_k, mean in zip(ganmas, N_k, mean_k):
+        for gamma_k, n_k, mean in zip(gammas, N_k, mean_k):
             var_k.append((
-                    ganma_k * (X - mean) * (X - mean).transpose()).sum() / n_k)
+                    gamma_k * (X - mean) * (X - mean).transpose()).sum() / n_k)
         var_k = np.array(var_k)
 
         #  式(9.26)
@@ -99,28 +96,29 @@ if __name__ == '__main__':
         log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
         #  対数尤度の出力
-        print("prev log-like-hood", prev_log_lkh)
-        print("log-lkie-hood", log_lkh)
+        print("prev log-likelihood", prev_log_lkh)
+        print("log-lkielihood", log_lkh)
         print("mean_k", mean_k)
         print("var_k", var_k)
         print("pi_k", pi_k)
 
         #  各ガウス分布の描画
-        std_k = var_k ** 0.5
-        z_new = np.random.choice(K, N, p=pi_k)
-        z_counts = np.bincount(z_new)
-        for k in np.arange(K):
-            x_new = np.random.normal(mean_k[k], std_k[k], z_counts[k])
-            hist(x_new)
-        plt.title("each likelihood")
-        plt.show()
+#        std_k = var_k ** 0.5
+#        z_new = np.random.choice(K, N, p=pi_k)
+#        z_counts = np.bincount(z_new)
+#        x_new = []
+#        for k in np.arange(K):
+#            x_new.extend(np.random.normal(mean_k[k], std_k[k], z_counts[k]))
+#        hist(np.array(x_new))
+#        plt.title("each likelihood")
+#        plt.show()
 
         #  負担率を表現したデータ
-#        ganmas = np.array(ganma_lst)
+#        gammas = np.array(gamma_lst)
 #        for i in np.arange(N):
-#            plt.bar(X[i], ganmas[:, i][0], color='b')
-#            plt.bar(X[i], ganmas[:, i][1], color='g')
-#            plt.bar(X[i], ganmas[:, i][2], color='r')
+#            plt.bar(X[i], gammas[:, i][0], color='b')
+#            plt.bar(X[i], gammas[:, i][1], color='g')
+#            plt.bar(X[i], gammas[:, i][2], color='r')
 #        plt.xlim(X.min(), X.max())
 #        plt.show()
         print("-----------------------------------------------------------------------")
