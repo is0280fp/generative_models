@@ -95,30 +95,35 @@ if __name__ == '__main__':
         #  対数尤度の計算
         log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
+        #  標準偏差の計算
+        std_k = var_k ** 0.5
+
         #  対数尤度の出力
         print("prev log-likelihood", prev_log_lkh)
         print("log-lkielihood", log_lkh)
         print("mean_k", mean_k)
         print("var_k", var_k)
+        print("std_k", std_k)
         print("pi_k", pi_k)
 
-        #  各ガウス分布の描画
-#        std_k = var_k ** 0.5
-#        z_new = np.random.choice(K, N, p=pi_k)
-#        z_counts = np.bincount(z_new)
-#        x_new = []
-#        for k in np.arange(K):
-#            x_new.extend(np.random.normal(mean_k[k], std_k[k], z_counts[k]))
-#        hist(np.array(x_new))
-#        plt.title("each likelihood")
-#        plt.show()
+        #  各ガウス分布確率密度関数の描画
+        x_scope = np.linspace(np.min(X), np.max(X), num=N)
+        for k in np.arange(K):
+            plt.plot(x_scope, gaussian_pdf(x_scope, mean_k[k], var_k[k]))
+        plt.ylim(0, 0.5)
+        plt.title("pdfs")
+        plt.show()
 
-        #  負担率を表現したデータ
-#        gammas = np.array(gamma_lst)
-#        for i in np.arange(N):
-#            plt.bar(X[i], gammas[:, i][0], color='b')
-#            plt.bar(X[i], gammas[:, i][1], color='g')
-#            plt.bar(X[i], gammas[:, i][2], color='r')
-#        plt.xlim(X.min(), X.max())
-#        plt.show()
+        #  混合ガウシアン分布の確率密度関数の描画
+        pdfs = []
+        for k in np.arange(K):
+            pdfs.append(gaussian_pdf(x_scope, mean_k[k], var_k[k]))
+        pdfs = np.array(pdfs)
+        plt.plot(x_scope, pdfs.sum(axis=0))
+        plt.ylim(0, 0.5)
+        plt.title("stacked")
+        plt.show()
+
+        #  対数尤度のグラフ
+
         print("-----------------------------------------------------------------------")
