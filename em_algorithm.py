@@ -19,7 +19,7 @@ def ganma(x, mean_k, var_k, pi_k):
     """
     lkh = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        lkh.append(pi * np.exp(-(x-mean)**2/2*var) / (2*np.pi*var)**0.5)
+        lkh.append(pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5)
     lkh = np.array(lkh)
     lkhs = np.sum(lkh, 0)
     return lkh/lkhs
@@ -31,7 +31,7 @@ def loglikelihood(x, mean_k, var_k, pi_k):
     """
     lkh_lst = []
     for mean, var, pi in zip(mean_k, var_k, pi_k):
-        lkh_lst.append(pi * np.exp(-(x-mean)**2/2*var) / (2*np.pi*var)**0.5)
+        lkh_lst.append(pi * np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5)
     return np.sum(np.log(np.sum(lkh_lst, 0)))
 
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     prev_log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
     while True:
-        assert prev_log_lkh <= log_lkh
+#        assert prev_log_lkh <= log_lkh
         prev_log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
         #  Eステップ(負担率の計算)
@@ -100,10 +100,12 @@ if __name__ == '__main__':
 
         #  各ガウス分布の描画
         std_k = var_k ** 0.5
+        z_new = np.random.choice(K, N, p=pi_k)
+        z_counts = np.bincount(z_new)
         for k in np.arange(K):
-            data = np.random.normal(mean_k[k], std_k[k], N)
-            hist(data)
-        plt.title("each like-hood")
+            x_new = np.random.normal(mean_k[k], std_k[k], z_counts[k])
+            hist(x_new)
+        plt.title("each likelihood")
         plt.show()
 
         #  負担率を表現したデータ
