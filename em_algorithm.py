@@ -93,6 +93,11 @@ if __name__ == '__main__':
         log_lkh = loglikelihood(X, mean, var, pi)
         log_lkh_lst.append(log_lkh)
 
+        #  収束判定
+        diff = log_lkh - prev_log_lkh
+        if diff < 0.01:
+            break
+
         #  標準偏差の計算
         std = var ** 0.5
 
