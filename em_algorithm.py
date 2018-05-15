@@ -59,7 +59,9 @@ if __name__ == '__main__':
     var_k = np.arange(1, K+1)
     pi_k = np.random.dirichlet([1] * K)
     #    パラメタ初期値での対数尤度
+    log_lkh_lst = []
     log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
+    log_lkh_lst.append(log_lkh)
     prev_log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
 
     while True:
@@ -94,6 +96,7 @@ if __name__ == '__main__':
 
         #  対数尤度の計算
         log_lkh = loglikelihood(X, mean_k, var_k, pi_k)
+        log_lkh_lst.append(log_lkh)
 
         #  標準偏差の計算
         std_k = var_k ** 0.5
@@ -125,5 +128,9 @@ if __name__ == '__main__':
         plt.show()
 
         #  対数尤度のグラフ
-
+        plt.plot(np.array(log_lkh_lst))
+        plt.ylim(-45000, -2000)
+        plt.title("log-likelihood")
+        plt.grid()
+        plt.show()
         print("-----------------------------------------------------------------------")
