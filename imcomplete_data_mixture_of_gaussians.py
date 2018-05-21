@@ -23,7 +23,6 @@ def gamma(x, mean, var, pi):
     lkh = []
     for mean_k, var_k, pi_k in zip(mean, var, pi):
         lkh.append(pi_k * gaussian_pdf(x, mean_k, var_k))
-    lkh = np.array(lkh)
     lkhs = np.sum(lkh, 0)
     return lkh/lkhs
 
@@ -41,7 +40,7 @@ def loglikelihood(x, mean, var, pi):
 if __name__ == '__main__':
     #  ハイパーパラメータ、ユーザが入力する
     K = 3
-    max_iter = 1000
+    max_iter = 10000
     tol = 1e-1
 
     #  サンプルデータ生成
@@ -113,7 +112,7 @@ if __name__ == '__main__':
         for k in np.arange(K):
             plt.plot(x_scope, gaussian_pdf(x_scope, mean[k], var[k]))
         plt.ylim(0, 0.5)
-        plt.title("pdfs")
+        plt.title("Components(weighted)")
         plt.show()
 
         #  混合ガウシアン分布の確率密度関数の描画
@@ -123,7 +122,7 @@ if __name__ == '__main__':
         pdfs = np.array(pdfs)
         plt.plot(x_scope, pdfs.sum(axis=0))
         plt.ylim(0, 0.5)
-        plt.title("stacked")
+        plt.title("pdf")
         plt.show()
 
         #  対数尤度のグラフ
