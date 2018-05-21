@@ -39,27 +39,29 @@ def loglikelihood(x, mean, var, pi):
 
 
 if __name__ == '__main__':
+    #  ハイパーパラメータ、ユーザが入力する
+    K = 3
+    max_iter = 1000
+    tol = 1e-1
+
+    #  サンプルデータ生成
     sampler = mixture_distributions.MixtureOfGaussians()
     X = sampler(1000, complete_data=False)
-
-    K = 3
     N = X.shape[0]
+
     #    パラメタ初期値設定
     mean = np.arange(1, K+1)
     var = np.arange(1, K+1)
     pi = np.random.dirichlet([1] * K)
+
     #    パラメタ初期値での対数尤度
     log_lkh_lst = []
     log_lkh = loglikelihood(X, mean, var, pi)
     log_lkh_lst.append(log_lkh)
-    prev_log_lkh = loglikelihood(X, mean, var, pi)
+    prev_log_lkh = - np.inf
 
-    max_iter = 1000
-    tol = 0.000000000001
-    cnt = 0
-
-    while cnt < max_iter:
-#        assert prev_log_lkh < log_lkh
+    for iteration in np.arange(max_iter):
+        assert prev_log_lkh < log_lkh
         prev_log_lkh = loglikelihood(X, mean, var, pi)
 
         #  Eステップ(負担率の計算)
@@ -67,10 +69,7 @@ if __name__ == '__main__':
 
         #  Mステップ(パラメタ値を再計算)
         #  式(9.27)
-        Ns = []
-        for k in np.arange(K):
-            Ns.append(gammas[k].sum())
-        Ns = np.array(Ns)
+        Ns = gammas.sum(1)
 
         mean = []
         #  式(9.24)
@@ -100,9 +99,6 @@ if __name__ == '__main__':
 
         #  標準偏差の計算
         std = var ** 0.5
-
-        #  カウントの更新
-        cnt += 1
 
         #  対数尤度の出力
         print("prev log-likelihood", prev_log_lkh)
@@ -144,7 +140,7 @@ if __name__ == '__main__':
     print("Distribution: ", sampler.get_name())
     print("Parameters: ", sampler.get_params())
 
-    #  以下、モデル生成処理
+    #  推定したパラメタモデルを使って新たなサンプルを生成
     z_new = np.random.choice(K, N, p=pi)
     x_new = []
     for i in np.arange(N):
