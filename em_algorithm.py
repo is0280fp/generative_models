@@ -58,7 +58,11 @@ if __name__ == '__main__':
     log_lkh_lst.append(log_lkh)
     prev_log_lkh = loglikelihood(X, mean, var, pi)
 
-    while True:
+    max_iter = 10000
+    tol = 0.01
+    cnt = 0
+
+    while cnt < max_iter:
 #        assert prev_log_lkh < log_lkh
         prev_log_lkh = loglikelihood(X, mean, var, pi)
 
@@ -95,11 +99,14 @@ if __name__ == '__main__':
 
         #  収束判定
         diff = log_lkh - prev_log_lkh
-        if diff < 0.01:
-            break
+#        if diff < epsilon:
+#            break
 
         #  標準偏差の計算
         std = var ** 0.5
+
+        #  カウントの更新
+        cnt += 1
 
         #  対数尤度の出力
         print("prev log-likelihood", prev_log_lkh)
@@ -129,8 +136,9 @@ if __name__ == '__main__':
 
         #  対数尤度のグラフ
         plt.plot(np.array(log_lkh_lst))
-        plt.ylim(-45000, -2000)
+        plt.ylim(-4500, -3500)
         plt.title("log-likelihood")
         plt.grid()
         plt.show()
+        print("diff", diff)
         print("-----------------------------------------------------------------------")
