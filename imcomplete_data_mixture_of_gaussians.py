@@ -9,7 +9,6 @@ p.154-155参照
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.special import logsumexp
 import mixture_distributions
 
 
@@ -42,9 +41,6 @@ def loglikelihood(x, mean, var, pi):
 if __name__ == '__main__':
     sampler = mixture_distributions.MixtureOfGaussians()
     X = sampler(1000, complete_data=False)
-#    sampler.visualize(X)
-#    print("Distribution: ", sampler.get_name())
-#    print("Parameters: ", sampler.get_params())
 
     K = 3
     N = X.shape[0]
@@ -58,8 +54,8 @@ if __name__ == '__main__':
     log_lkh_lst.append(log_lkh)
     prev_log_lkh = loglikelihood(X, mean, var, pi)
 
-    max_iter = 10000
-    tol = 0.01
+    max_iter = 1000
+    tol = 0.000000000001
     cnt = 0
 
     while cnt < max_iter:
@@ -99,8 +95,8 @@ if __name__ == '__main__':
 
         #  収束判定
         diff = log_lkh - prev_log_lkh
-#        if diff < epsilon:
-#            break
+        if diff < tol:
+            break
 
         #  標準偏差の計算
         std = var ** 0.5
@@ -136,9 +132,28 @@ if __name__ == '__main__':
 
         #  対数尤度のグラフ
         plt.plot(np.array(log_lkh_lst))
-        plt.ylim(-4500, -3500)
+        plt.ylim(-4500, 0)
         plt.title("log-likelihood")
         plt.grid()
         plt.show()
         print("diff", diff)
         print("-----------------------------------------------------------------------")
+
+    print("real data")
+    sampler.visualize(X)
+    print("Distribution: ", sampler.get_name())
+    print("Parameters: ", sampler.get_params())
+
+    #  以下、モデル生成処理
+    z_new = np.random.choice(K, N, p=pi)
+    x_new = []
+    for i in np.arange(N):
+        k = z_new[i]
+        x_new.append(np.random.normal(mean[k], std[k], 1))
+    x_new = np.array(x_new)
+
+    print("create data")
+    sampler.visualize(x_new)
+    print("probabilities", pi)
+    print("mean", mean)
+    print("std", std)
