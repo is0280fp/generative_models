@@ -41,12 +41,12 @@ def loglikelihood(x, mean, var, pi):
 if __name__ == '__main__':
     #  ハイパーパラメータ、ユーザが入力する
     K = 3
-    max_iter = 10000
+    max_iter = 1000
     tol = 1e-5
 
     #  サンプルデータ生成
     sampler = mixture_distributions.MixtureOfGaussians()
-    X = sampler(1000, complete_data=False)
+    X = sampler(10000, complete_data=False)
     N = X.shape[0]
 
     #    パラメタ初期値設定
@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
         #  対数尤度のグラフ
         plt.plot(np.array(log_lkh_lst))
-        plt.ylim(-4500, 0)
+        plt.ylim(-45000, -35000)
         plt.title("log-likelihood")
         plt.grid()
         plt.show()
