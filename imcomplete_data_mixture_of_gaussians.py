@@ -23,6 +23,7 @@ def gamma(x, mean, var, pi):
     lkh = []
     for mean_k, var_k, pi_k in zip(mean, var, pi):
         lkh.append(pi_k * gaussian_pdf(x, mean_k, var_k))
+    lkh = np.array(lkh)
     lkhs = np.sum(lkh, 0)
     return lkh/lkhs
 
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     #  ハイパーパラメータ、ユーザが入力する
     K = 3
     max_iter = 10000
-    tol = 1e-1
+    tol = 1e-5
 
     #  サンプルデータ生成
     sampler = mixture_distributions.MixtureOfGaussians()
