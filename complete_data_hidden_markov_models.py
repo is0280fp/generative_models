@@ -32,46 +32,46 @@ if __name__ == '__main__':
     print("K:", K)
     print("p_initial_state:", p_initial_state)
 
+    count0_0 = 0
+    count0_1 = 0
+    count0_2 = 0
+    count1_0 = 0
     count1_1 = 0
     count1_2 = 0
-    count1_3 = 0
+    count2_0 = 0
     count2_1 = 0
     count2_2 = 0
-    count2_3 = 0
-    count3_1 = 0
-    count3_2 = 0
-    count3_3 = 0
     prev_z = z[:-1]
     for i in np.arange(1, N):
-        if prev_z[i-1] == 1:
+        if prev_z[i-1] == 0:
             if z[i] == 0:
-                count2_1 += 1
+                count0_0 += 1
             elif z[i] == 1:
-                count2_2 += 1
+                count0_1 += 1
             else:
-                count2_3 += 1
-        elif prev_z[i-1] == 2:
+                count0_2 += 1
+        elif prev_z[i-1] == 1:
             if z[i] == 0:
-                count3_1 += 1
+                count1_0 += 1
             elif z[i] == 1:
-                count3_2 += 1
+                count1_1 += 1
             else:
-                count3_3 += 1
+                count1_2 += 1
         else:
             if z[i] == 0:
-                count1_1 += 1
+                count2_0 += 1
             elif z[i] == 1:
-                count1_2 += 1
+                count2_1 += 1
             else:
-                count1_3 += 1
+                count2_2 += 1
 
-    count1 = count1_1 + count1_2 + count1_3
-    count2 = count2_1 + count2_2 + count2_3
-    count3 = count3_1 + count3_2 + count3_3
+    count0 = count0_0 + count0_1 + count0_2
+    count1 = count1_0 + count1_1 + count1_2
+    count2 = count2_0 + count2_1 + count2_2
     transition_matrix = []
-    transition_matrix.append([count1_1/count1, count1_2/count1, count1_3/count1])
-    transition_matrix.append([count2_1/count2, count2_2/count2, count2_3/count2])
-    transition_matrix.append([count3_1/count3, count3_2/count3, count3_3/count3])
+    transition_matrix.append([count0_0/count0, count0_1/count0, count0_2/count0])
+    transition_matrix.append([count1_0/count1, count1_1/count1, count1_2/count1])
+    transition_matrix.append([count2_0/count2, count2_1/count2, count2_2/count2])
 
     xs = []
     for k in range(K):
