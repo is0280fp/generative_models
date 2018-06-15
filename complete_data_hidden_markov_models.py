@@ -32,46 +32,28 @@ if __name__ == '__main__':
     print("K:", K)
     print("p_initial_state:", p_initial_state)
 
-    count0_0 = 0
-    count0_1 = 0
-    count0_2 = 0
-    count1_0 = 0
-    count1_1 = 0
-    count1_2 = 0
-    count2_0 = 0
-    count2_1 = 0
-    count2_2 = 0
+    a = np.linspace(0, K-1, K)
+    b = np.linspace(0, K-1, K)
+    a, b = np.meshgrid(a, b)
+    a = a.reshape(-1, 1)
+    b = b.reshape(-1, 1)
+    pre_and_now_zs_grid = np.hstack((a, b))
     prev_z = z[:-1]
-    for i in np.arange(1, N):
-        if prev_z[i-1] == 0:
-            if z[i] == 0:
-                count0_0 += 1
-            elif z[i] == 1:
-                count0_1 += 1
-            else:
-                count0_2 += 1
-        elif prev_z[i-1] == 1:
-            if z[i] == 0:
-                count1_0 += 1
-            elif z[i] == 1:
-                count1_1 += 1
-            else:
-                count1_2 += 1
-        else:
-            if z[i] == 0:
-                count2_0 += 1
-            elif z[i] == 1:
-                count2_1 += 1
-            else:
-                count2_2 += 1
+    count_list = []
 
-    count0 = count0_0 + count0_1 + count0_2
-    count1 = count1_0 + count1_1 + count1_2
-    count2 = count2_0 + count2_1 + count2_2
+    for zs in pre_and_now_zs_grid:
+      count = 0
+      for i in np.arange(1, N):
+        if all(zs == np.array([z[i], prev_z[i-1]])):
+          count += 1
+      count_list.append(count)
+
+    count_list = np.array(count_list).reshape(K, K)
     transition_matrix = []
-    transition_matrix.append([count0_0/count0, count0_1/count0, count0_2/count0])
-    transition_matrix.append([count1_0/count1, count1_1/count1, count1_2/count1])
-    transition_matrix.append([count2_0/count2, count2_1/count2, count2_2/count2])
+    for k in range(K):
+      for i in range(K):
+        transition_matrix.append(count_list[k, i]/count_list[k].sum())
+    transition_matrix = np.array(transition_matrix).reshape(K, K)
 
     xs = []
     for k in range(K):
