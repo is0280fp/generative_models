@@ -42,17 +42,17 @@ if __name__ == '__main__':
     count_list = []
 
     for zs in pre_and_now_zs_grid:
-      count = 0
-      for i in np.arange(1, N):
-        if all(zs == np.array([z[i], prev_z[i-1]])):
-          count += 1
-      count_list.append(count)
+        count = 0
+        for i in np.arange(1, N):
+            if all(zs == np.array([z[i], prev_z[i-1]])):
+                count += 1
+        count_list.append(count)
 
     count_list = np.array(count_list).reshape(K, K)
     transition_matrix = []
     for k in range(K):
-      for i in range(K):
-        transition_matrix.append(count_list[k, i]/count_list[k].sum())
+        for i in range(K):
+            transition_matrix.append(count_list[k, i]/count_list[k].sum())
     transition_matrix = np.array(transition_matrix).reshape(K, K)
 
     xs = []
