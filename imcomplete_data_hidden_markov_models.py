@@ -19,7 +19,7 @@ def gaussian_pdfs(x, mean, var):
     #  返り値: N×K次元のarray
     lkh = []
     for mean_k, var_k in zip(mean, var):
-        lkh.append(np.exp(-(x-mean_k)**2/(2*var_k)) / (2*np.pi*var_k)**0.5)
+        lkh.append(gaussian_pdf(x, mean_k, var_k))
     return np.array(lkh)
 
 
@@ -28,9 +28,7 @@ def gaussian_pdf(x, mean, var):
     式(9.23)
     """
     #  返り値: N×K次元のarray
-    lkh = []
-    lkh.append(np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5)
-    return np.array(lkh)
+    return np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5
 
 
 def loglikelihoods(x, mean, var, A):
@@ -39,67 +37,66 @@ def loglikelihoods(x, mean, var, A):
     """
     #  返り値: スカラー
     lkh = []
-    for j in np.arange(A.shape[0]):
-        for k in np.arange(A.shape[1]):
+    for j in range(A.shape[0]):
+        for k in range(A.shape[1]):
             lkh.append(A[j, k] * gaussian_pdf(x, mean[k], var[k]))
     return np.sum(np.log(np.sum(lkh, 0)))
 
 
-def loglikelihood(x, mean, var, A):
-    """
-    式(9.28)
-    """
-    #  返り値: スカラー
-    lkh = A * gaussian_pdf(x, mean, var)
-    return np.sum(np.log(np.sum(lkh, 0)))
-
-
-def alpha(x, mean, var, init_alpha, A):
-    #  返り値: 長さN, K次元のarray
-    #  AをZn-1で周辺化, スカラーになる
+def compute_alpha_hat(x, mean, var, init_alpha, A):
+    #  返り値alpha: 長さN, K次元のarray
+    #  返り値c: 長さN-1, 1次元のarray
     gaus_pdf = gaussian_pdfs(x, mean, var).transpose()
-    alpha_lst = [init_alpha]
-    for n in np.arange(len(x)-1):
-        for j in np.arange(A.shape[0]):
+    alpha_lst = []
+    alpha_hat_lst = [init_alpha]
+    c_lst = []
+    J = A.shape[0]
+    K = A.shape[1]
+    for n in range(1, N):
+        for k in range(K):
             sum_lst = []
-            for k in np.arange(A.shape[1]):
-                cn = loglikelihood(x[0:n+1], mean[k], var[k], A[j, k])
-                sum_lst.append(np.array(alpha_lst[-1])[k] * 1/cn * A[j, k])
-            alpha_lst.append(
-                    np.array(sum_lst).sum() * gaus_pdf[0:n+1, 0::].sum(axis=0))
-    return np.array(alpha_lst)
+            for j in range(J):
+                sum_lst.append(np.array(alpha_hat_lst[-1])[k] * A[j, k])
+            alpha_lst.append(np.array(sum_lst).sum())
+        alpha_lst[-K::] = alpha_lst[-K::] * gaus_pdf[n]
+        cn = np.array(alpha_lst[-K::]).sum()
+        alpha_hat_lst.append(alpha_lst[-K::]/cn)
+        c_lst.append(cn)
+    return np.array(alpha_hat_lst), np.array(c_lst)
 
 
-def beta(x, mean, var, init_beta, A):
+def compute_beta_hat(x, mean, var, init_beta, A, c):
     #  返り値: 長さN, K次元のarray
     gaus_pdf = gaussian_pdfs(x, mean, var).transpose()
-    beta_lst = [init_beta]
-    for n in np.arange(len(x)-1)[::-1]:
-        for j in np.arange(A.shape[0]):
+    beta_lst = []
+    beta_hat_lst = [init_beta]
+    J = A.shape[0]
+    K = A.shape[1]
+    for n in range(N-1)[::-1]:
+        for j in range(J):
             sum_lst = []
-            for k in np.arange(A.shape[1]):
-                cn = loglikelihood(x[n::], mean[k], var[k], A[j, k])
-                sum_lst.append(np.array(beta_lst[-1])[k] * 1/cn * A[
-                        j, k] * gaus_pdf[n::, 0::].sum(axis=0))
-            beta_lst.append(np.array(sum_lst).sum(axis=0))
-    return np.array(beta_lst)[::-1]
+            for k in range(K):
+                sum_lst.append(np.array(
+                        beta_hat_lst[-1])[k] * A[j, k] * gaus_pdf[n, k])
+            beta_lst.append(np.array(sum_lst).sum())
+        beta_hat_lst.append(beta_lst[-K::]/c[n])
+    return np.array(beta_hat_lst)[::-1]
 
 
-def guzai(x, mean, var, A, alpha, beta, gaus_pdf):
-    #  返り値: K*Kのarray, 長さN
-    #  cnは0~Nまで
-    log_lkh = loglikelihoods(x, mean, var, A)
+def xi(x, mean, var, A, alpha, beta, gaus_pdf, c):
+    #  返り値: K*Kのarray, 長さN-1
     gaus_pdf = gaus_pdf.transpose()
-    guzai_lst = []
+    xi_lst = []
     a = alpha[:-1]
     b = beta[1:]
-    for n in np.arange(len(x)-1):
-        for j in np.arange(A.shape[0]):
-            for k in np.arange(A.shape[1]):
-                guzai_lst.append(
-                        a[n, k] * gaus_pdf[n, k] * A[
-                                j, k] * b[n, k] * 1/log_lkh)
-    return np.array(guzai_lst).reshape(-1, K, K)
+    J = A.shape[0]
+    K = A.shape[1]
+    for n in range(N-1):
+        for j in range(J):
+            for k in range(K):
+                xi_lst.append(
+                        a[n, j] * gaus_pdf[n, k] * A[j, k] * b[n, k] * 1/c[n])
+    return np.array(xi_lst).reshape(-1, K, K)
 
 
 if __name__ == '__main__':
@@ -115,7 +112,10 @@ if __name__ == '__main__':
 
     #    パラメタ初期値設定
     #  式(13.18)
-    A = np.array([[0.4, 0.3, 0.3]])
+    A = np.array([[0.4, 0.3, 0.3],
+                  [0.4, 0.3, 0.3],
+                  [0.4, 0.3, 0.3]
+                  ])
     mean = np.arange(1, K+1)
     var = np.arange(1, K+1)
 
@@ -135,10 +135,10 @@ if __name__ == '__main__':
         #  Eステップ(負担率の計算)
         #  gaus_pdf = p(Xn|Zn), shape(N, K)のarray
         gaus_pdf = gaussian_pdfs(X, mean, var)
-        a = alpha(X, mean, var, init_alpha, A)
-        b = beta(X, mean, var, init_beta, A)
-        gammas = a * b
-        guzai = guzai(X, mean, var, A, a, b, gaus_pdf)
+        alpha_hat, c = compute_alpha_hat(X, mean, var, init_alpha, A)
+        beta_hat = compute_beta_hat(X, mean, var, init_beta, A, c)
+        gammas = alpha_hat * beta_hat
+        xis = xi(X, mean, var, A, alpha_hat, beta_hat, gaus_pdf, c)
 
         #  Mステップ(パラメタ値を再計算)
         #  式(9.27), スカラー
@@ -146,20 +146,20 @@ if __name__ == '__main__':
 
         mean = []
         #  式(9.24), 式(13.20)
-        for k in np.arange(K):
+        for k in range(K):
             mean.append((gammas[::, k] * X).sum() / Ns[k])
         mean = np.array(mean)
 
         var = []
         #  式(9.25), 式(13.21)
-        for k in np.arange(K):
+        for k in range(K):
             var.append((
                     gammas[::, k] * (X - mean[k]) * (X - mean[k]).transpose()
                     ).sum() / Ns[k])
         var = np.array(var)
 
         #  式(13.19), K*Kのarray
-        A = guzai.sum(0) / guzai.sum()
+        A = xis.sum(0) / xis.sum()
 
         #  対数尤度の計算
         log_lkh = loglikelihoods(X, mean, var, A)
@@ -180,10 +180,13 @@ if __name__ == '__main__':
         print("var", var)
         print("std", std)
         print("A", A)
+        print("alpha_hat", alpha_hat)
+        print("beta_hat", beta_hat)
+        print("xi", xis)
 
         #  各ガウス分布確率密度関数の描画
         x_scope = np.linspace(np.min(X), np.max(X), num=N)
-        for k in np.arange(K):
+        for k in range(K):
             plt.plot(x_scope, gaussian_pdf(x_scope, mean[k], var[k]))
         plt.ylim(0, 0.5)
         plt.title("Components(weighted)")
@@ -191,7 +194,7 @@ if __name__ == '__main__':
 
         #  混合ガウシアン分布の確率密度関数の描画
         pdfs = []
-        for k in np.arange(K):
+        for k in range(K):
             pdfs.append(gaussian_pdf(x_scope, mean[k], var[k]))
         pdfs = np.array(pdfs)
         plt.plot(x_scope, pdfs.sum(axis=0))
@@ -216,7 +219,7 @@ if __name__ == '__main__':
     #  推定したパラメタモデルを使って新たなサンプルを生成
     z_new = np.random.choice(K, N, p=A)
     x_new = []
-    for i in np.arange(N):
+    for i in range(N):
         k = z_new[i]
         x_new.append(np.random.normal(mean[k], std[k], 1))
     x_new = np.array(x_new)
