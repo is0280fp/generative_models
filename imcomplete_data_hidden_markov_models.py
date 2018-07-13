@@ -63,19 +63,18 @@ def compute_alpha_hat(init_alpha, A, gaus_pdfs):
 
 def compute_beta_hat(init_beta, A, c, gaus_pdfs):
     #  返り値: 長さN, K次元のarray
-    beta_lst = []
     init_beta_hat = init_beta / c[-1]
     beta_hat_lst = [init_beta_hat]
     J = A.shape[0]
     K = A.shape[1]
     for n in range(N-1)[::-1]:
+        sum_lst = []
         for j in range(J):
-            sum_lst = []
             for k in range(K):
                 sum_lst.append(np.array(
                         beta_hat_lst[-1])[k] * A[j, k] * gaus_pdfs[n, k])
-            beta_lst.append(np.array(sum_lst).sum())
-        beta_hat_lst.append(beta_lst[-K::]/c[n])
+        beta = np.array(sum_lst).reshape(K, K).sum(1)
+        beta_hat_lst.append(beta/c[n])
     return np.array(beta_hat_lst)[::-1]
 
 
