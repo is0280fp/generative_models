@@ -50,39 +50,79 @@ def compute_alpha_hat(init_alpha, A, gaus_pdfs):
     J = A.shape[0]
     K = A.shape[1]
     for n in range(1, N):
-        sum_lst = []
+        alpha_n = []
         for k in range(K):
+            alpha_nk = []
             for j in range(J):
-                sum_lst.append(np.array(alpha_hat_lst[-1])[j] * A[j, k])
-        alpha = np.array(sum_lst).reshape(K, K).sum(1) * gaus_pdfs[n]
-        cn = alpha.sum()
-        alpha_hat_lst.append(alpha/cn)
+                alpha_nk.append(np.array(alpha_hat_lst[-1])[j] * A[j, k])
+            alpha_n.append(np.array(alpha_nk).sum() * gaus_pdf[n, k])
+        cn = np.array(alpha_n).sum()
+        alpha_hat_lst.append(alpha_n/cn)
         c_lst.append(cn)
     return np.array(alpha_hat_lst), np.array(c_lst)
 
 
 def compute_beta_hat(init_beta, A, c, gaus_pdfs):
     #  返り値: 長さN, K次元のarray
-    init_beta_hat = init_beta / c[-1]
-    beta_hat_lst = [init_beta_hat]
+    beta_hat_lst = [init_beta]
     J = A.shape[0]
     K = A.shape[1]
     for n in range(N-1)[::-1]:
-        sum_lst = []
+        beta_n = []
         for j in range(J):
+            beta_nk = []
             for k in range(K):
-                sum_lst.append(np.array(
-                        beta_hat_lst[-1])[k] * A[j, k] * gaus_pdfs[n, k])
-        beta = np.array(sum_lst).reshape(K, K).sum(1)
-        beta_hat_lst.append(beta/c[n])
+                beta_nk.append(np.array(beta_hat_lst[-1])[k] * A[j, k] * gaus_pdfs[n, k])
+            beta_n.append(np.array(beta_nk).sum())
+        beta_hat_lst.append(beta_n/c[n])
     return np.array(beta_hat_lst)[::-1]
 
 
-def xi(A, alpha, beta, gaus_pdf, c):
+#def compute_alpha_hat(init_alpha, A, gaus_pdf):
+#    #  返り値alpha: 長さN, K次元のarray
+#    #  返り値c: 長さN-1, 1次元のarray
+#    alpha_lst = []
+#    init_hat_alpha = init_alpha / init_alpha.sum()
+#    alpha_hat_lst = [init_hat_alpha]
+#    c_lst = [init_alpha.sum()]
+#    J = A.shape[0]
+#    K = A.shape[1]
+#    for n in range(1, N):
+#        for k in range(K):
+#            sum_lst = []
+#            for j in range(J):
+#                sum_lst.append(np.array(alpha_hat_lst[-1])[j] * A[j, k])
+#            alpha_lst.append(np.array(sum_lst).sum())
+#        alpha_lst[-K::] = alpha_lst[-K::] * gaus_pdf[n]
+#        cn = np.array(alpha_lst[-K::]).sum()
+#        alpha_hat_lst.append(alpha_lst[-K::]/cn)
+#        c_lst.append(cn)
+#    return np.array(alpha_hat_lst), np.array(c_lst)
+#
+#
+#def compute_beta_hat(init_beta, A, c, gaus_pdf):
+#    #  返り値: 長さN, K次元のarray
+#    beta_lst = []
+#    beta_hat_lst = [init_beta]
+#    J = A.shape[0]
+#    K = A.shape[1]
+#    for n in range(N-1)[::-1]:
+#        for j in range(J):
+#            sum_lst = []
+#            for k in range(K):
+#                sum_lst.append(np.array(
+#                        beta_hat_lst[-1])[k] * A[j, k] * gaus_pdf[n, k])
+#            beta_lst.append(np.array(sum_lst).sum())
+#        beta_hat_lst.append(beta_lst[-K::]/c[n])
+#    return np.array(beta_hat_lst)[::-1]
+
+
+def compute_xi(A, alpha, beta, gaus_pdf, c):
     #  返り値: K*Kのarray, 長さN-1
     xi_lst = []
     alpha = alpha[:-1]
     beta = beta[1:]
+    gaus_pdf = gaus_pdf[1:]
     c = c[1:]
     J = A.shape[0]
     K = A.shape[1]
@@ -90,7 +130,8 @@ def xi(A, alpha, beta, gaus_pdf, c):
         for j in range(J):
             for k in range(K):
                 xi_lst.append(
-                        alpha[n, j] * gaus_pdf[n, k] * A[j, k] * beta[n, k] * 1/c[n])
+                        alpha[n, j] * gaus_pdf[n, k] * A[
+                                j, k] * beta[n, k] * 1/c[n])
     return np.array(xi_lst).reshape(-1, K, K)
 
 
@@ -108,9 +149,9 @@ if __name__ == '__main__':
     #    パラメタ初期値設定
     pi = np.array([0.4, 0.3, 0.3])
     #  式(13.18)
-    A = np.array([[0.88 , 0.111, 0.009],
-                  [0.04 , 0.9  , 0.06 ],
-                  [0.002, 0.098, 0.9 ]
+    A = np.array([[0.88, 0.111, 0.009],
+                  [0.04, 0.9, 0.06],
+                  [0.002, 0.098, 0.9]
                   ])
     mean = np.arange(1, K+1)
     var = np.arange(1, K+1)
@@ -134,8 +175,7 @@ if __name__ == '__main__':
         alpha_hat, c = compute_alpha_hat(init_alpha, A, gaus_pdfs)
         beta_hat = compute_beta_hat(init_beta, A, c, gaus_pdfs)
         gammas = alpha_hat * beta_hat
-        xis = xi(A, alpha_hat, beta_hat, gaus_pdf, c)
-
+        xis = compute_xi(A, alpha_hat, beta_hat, gaus_pdf, c)
         #  Mステップ(パラメタ値を再計算)
         #  式(9.27), スカラー
         Ns = gammas.sum(0)
@@ -155,7 +195,8 @@ if __name__ == '__main__':
         var = np.array(var)
 
         #  式(13.19), K*Kのarray
-        A = xis.sum(0) / xis.sum()
+        sum_xis = xis.sum(0)
+        A /= sum_xis.sum(1, keepdims=True)
 
         #  対数尤度の計算
         log_lkh = loglikelihoods(X, mean, var, pi)
