@@ -12,6 +12,14 @@ import matplotlib.pyplot as plt
 import hidden_markov_models
 
 
+def gaussian_pdf(x, mean, var):
+    """
+    式(9.23)
+    """
+    #  返り値: N×K次元のarray
+    return np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5
+
+
 def gaussian_pdfs(x, mean, var):
     """
     式(9.23)
@@ -20,15 +28,7 @@ def gaussian_pdfs(x, mean, var):
     lkh = []
     for mean_k, var_k in zip(mean, var):
         lkh.append(gaussian_pdf(x, mean_k, var_k))
-    return np.array(lkh)
-
-
-def gaussian_pdf(x, mean, var):
-    """
-    式(9.23)
-    """
-    #  返り値: N×K次元のarray
-    return np.exp(-(x-mean)**2/(2*var)) / (2*np.pi*var)**0.5
+    return np.array(lkh).transpose()
 
 
 def loglikelihoods(x, mean, var, A):
@@ -46,7 +46,7 @@ def loglikelihoods(x, mean, var, A):
 def compute_alpha_hat(x, mean, var, init_alpha, A):
     #  返り値alpha: 長さN, K次元のarray
     #  返り値c: 長さN-1, 1次元のarray
-    gaus_pdf = gaussian_pdfs(x, mean, var).transpose()
+    gaus_pdf = gaussian_pdfs(x, mean, var)
     alpha_lst = []
     alpha_hat_lst = [init_alpha]
     c_lst = []
@@ -67,7 +67,7 @@ def compute_alpha_hat(x, mean, var, init_alpha, A):
 
 def compute_beta_hat(x, mean, var, init_beta, A, c):
     #  返り値: 長さN, K次元のarray
-    gaus_pdf = gaussian_pdfs(x, mean, var).transpose()
+    gaus_pdf = gaussian_pdfs(x, mean, var)
     beta_lst = []
     beta_hat_lst = [init_beta]
     J = A.shape[0]
@@ -85,7 +85,6 @@ def compute_beta_hat(x, mean, var, init_beta, A, c):
 
 def xi(x, mean, var, A, alpha, beta, gaus_pdf, c):
     #  返り値: K*Kのarray, 長さN-1
-    gaus_pdf = gaus_pdf.transpose()
     xi_lst = []
     a = alpha[:-1]
     b = beta[1:]
@@ -126,11 +125,12 @@ if __name__ == '__main__':
     prev_log_lkh = - np.inf
     init_beta = np.ones(K)
     gaus_pdf = gaussian_pdfs(X, mean, var)
+    pi = np.array([0.4, 0.3, 0.3])
 
     for iteration in np.arange(max_iter):
 #        assert prev_log_lkh < log_lkh
         prev_log_lkh = loglikelihoods(X, mean, var, A)
-        init_alpha = (loglikelihoods(X, mean, var, A) * A).sum(axis=0)
+        init_alpha = gaussian_pdfs(X[0], mean, var) * pi
 
         #  Eステップ(負担率の計算)
         #  gaus_pdf = p(Xn|Zn), shape(N, K)のarray
