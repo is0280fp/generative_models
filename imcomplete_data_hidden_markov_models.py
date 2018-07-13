@@ -48,15 +48,16 @@ def compute_alpha_hat(x, mean, var, init_alpha, A):
     #  返り値c: 長さN-1, 1次元のarray
     gaus_pdf = gaussian_pdfs(x, mean, var)
     alpha_lst = []
-    alpha_hat_lst = [init_alpha]
-    c_lst = []
+    init_hat_alpha = init_alpha / init_alpha.sum()
+    alpha_hat_lst = [init_hat_alpha]
+    c_lst = [init_alpha.sum()]
     J = A.shape[0]
     K = A.shape[1]
     for n in range(1, N):
         for k in range(K):
             sum_lst = []
             for j in range(J):
-                sum_lst.append(np.array(alpha_hat_lst[-1])[k] * A[j, k])
+                sum_lst.append(np.array(alpha_hat_lst[-1])[j] * A[j, k])
             alpha_lst.append(np.array(sum_lst).sum())
         alpha_lst[-K::] = alpha_lst[-K::] * gaus_pdf[n]
         cn = np.array(alpha_lst[-K::]).sum()
@@ -217,15 +218,15 @@ if __name__ == '__main__':
     print("Parameters: ", sampler.get_params())
 
     #  推定したパラメタモデルを使って新たなサンプルを生成
-    z_new = np.random.choice(K, N, p=A)
-    x_new = []
-    for i in range(N):
-        k = z_new[i]
-        x_new.append(np.random.normal(mean[k], std[k], 1))
-    x_new = np.array(x_new)
-
-    print("create data")
-    sampler.visualize(x_new)
-    print("probabilities", A)
-    print("mean", mean)
-    print("std", std)
+#    z_new = np.random.choice(K, N, p=A[0])
+#    x_new = []
+#    for i in range(N):
+#        k = z_new[i]
+#        x_new.append(np.random.normal(mean[k], std[k], 1))
+#    x_new = np.array(x_new)
+#
+#    print("create data")
+#    sampler.visualize(x_new)
+#    print("probabilities", A)
+#    print("mean", mean)
+#    print("std", std)
