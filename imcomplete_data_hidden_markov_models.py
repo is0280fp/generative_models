@@ -31,14 +31,14 @@ def gaussian_pdfs(x, mean, var):
     return np.array(lkh).transpose()
 
 
-def loglikelihoods(x, mean, var, pi):
+def loglikelihoods(c):
     """
-    式(9.28)
+    式(13.63)
     """
-    lkh = []
-    for mean_k, var_k, pi_k in zip(mean, var, pi):
-        lkh.append(pi_k * gaussian_pdf(x, mean_k, var_k))
-    return np.sum(np.log(np.sum(lkh, 0)))
+    cn = 0
+    for i in range(len(c)):
+            cn += np.log(c[i])
+    return cn
 
 
 def compute_alpha_hat(init_alpha, A, gaus_pdfs):
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     #  サンプルデータ生成
     sampler = hidden_markov_models.GaussianHMM()
-    X, Z = sampler(10000, complete_data=True)
+    Z, X = sampler(10000, complete_data=True)
     N = X.shape[0]
 
     #    パラメタ初期値設定
@@ -116,19 +116,18 @@ if __name__ == '__main__':
                   ])
     mean = np.arange(1, K+1)
     var = np.arange(1, K+1)
-#    mean = np.array([-15, 0, 30])
-#    var = np.array([1, 10, 2])
 
     #    パラメタ初期値での対数尤度
     log_lkh_lst = []
-    log_lkh = loglikelihoods(X, mean, var, pi)
+    c = np.ones(N) * 1e-100
+    log_lkh = loglikelihoods(c)
     log_lkh_lst.append(log_lkh)
     prev_log_lkh = - np.inf
     init_beta = np.ones(K)
 
     for iteration in np.arange(max_iter):
-#        assert prev_log_lkh < log_lkh
-        prev_log_lkh = loglikelihoods(X, mean, var, pi)
+        assert prev_log_lkh < log_lkh
+        prev_log_lkh = loglikelihoods(c)
         init_alpha = gaussian_pdfs(X[0], mean, var) * pi
 
         #  Eステップ(負担率の計算)
@@ -161,13 +160,12 @@ if __name__ == '__main__':
         A = sum_xis / sum_xis.sum(1, keepdims=True)
 
         #  対数尤度の計算
-        log_lkh = loglikelihoods(X, mean, var, pi)
+        log_lkh = loglikelihoods(c)
         log_lkh_lst.append(log_lkh)
-
         #  収束判定
-#        diff = log_lkh - prev_log_lkh
-#        if diff < tol:
-#            break
+        diff = log_lkh - prev_log_lkh
+        if diff < tol:
+            break
 
         #  標準偏差の計算
         std = var ** 0.5
@@ -203,7 +201,7 @@ if __name__ == '__main__':
 
         #  対数尤度のグラフ
         plt.plot(np.array(log_lkh_lst))
-        plt.ylim(-35000, -25000)
+        plt.ylim(-80000, -20000)
         plt.title("log-likelihood")
         plt.grid()
         plt.show()
