@@ -100,7 +100,7 @@ if __name__ == '__main__':
     #  ハイパーパラメータ、ユーザが入力する
     K = 3
     max_iter = 1000
-    tol = 1e-5
+    tol = 1e-10
 
     #  サンプルデータ生成
     sampler = hidden_markov_models.GaussianHMM()
@@ -110,12 +110,12 @@ if __name__ == '__main__':
     #    パラメタ初期値設定
     pi = np.array([0.4, 0.3, 0.3])
     #  式(13.18)
-    A = np.array([[0.99, 0.009, 0.001],
-                  [0.05, 0.9, 0.05],
-                  [0.001, 0.009, 0.99]
+    A = np.array([[0.4, 0.3, 0.3],
+                  [0.3, 0.4, 0.3],
+                  [0.3, 0.3, 0.4]
                   ])
-    mean = np.arange(1, K+1)
-    var = np.arange(1, K+1)
+    mean = np.array([1, 5, 10])
+    var = np.array([1, 5, 10])
 
     #    パラメタ初期値での対数尤度
     log_lkh_lst = []
@@ -201,11 +201,11 @@ if __name__ == '__main__':
 
         #  対数尤度のグラフ
         plt.plot(np.array(log_lkh_lst))
-        plt.ylim(-80000, -20000)
+        plt.ylim(-80000, -18000)
         plt.title("log-likelihood")
         plt.grid()
         plt.show()
-#        print("diff", diff)
+        print("diff", diff)
         print("-----------------------------------------------------------------------")
 
     print("real data")
@@ -214,15 +214,18 @@ if __name__ == '__main__':
     print("Parameters: ", sampler.get_params())
 
     #  推定したパラメタモデルを使って新たなサンプルを生成
-#    z_new = np.random.choice(K, N, p=A[0])
-#    x_new = []
-#    for i in range(N):
-#        k = z_new[i]
-#        x_new.append(np.random.normal(mean[k], std[k], 1))
-#    x_new = np.array(x_new)
-#
-#    print("create data")
-#    sampler.visualize(x_new)
-#    print("probabilities", A)
-#    print("mean", mean)
-#    print("std", std)
+    z_1 = np.random.choice(K, 1, p=pi)
+    x_1 = np.random.normal(mean[z_1], std[z_1], 1)
+    z_new = [z_1]
+    x_new = [x_1]
+    for i in np.arange(1, N):
+        z_new.append(np.random.choice(K, 1, p=A[int(z_new[-1])]))
+        x_new.append(np.random.normal(
+                mean[int(z_new[-1])], std[int(z_new[-1])], 1))
+
+    x_new = np.array(x_new)
+    print("create data")
+    sampler.visualize(x_new)
+    print("transition_matrix:", A)
+    print("mean:", mean)
+    print("std:", std)
