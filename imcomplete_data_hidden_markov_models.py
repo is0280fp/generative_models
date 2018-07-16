@@ -55,7 +55,7 @@ def compute_alpha_hat(init_alpha, A, gaus_pdfs):
             alpha_nk = []
             for j in range(J):
                 alpha_nk.append(np.array(alpha_hat_lst[-1])[j] * A[j, k])
-            alpha_n.append(np.array(alpha_nk).sum() * gaus_pdf[n, k])
+            alpha_n.append(np.array(alpha_nk).sum() * gaus_pdfs[n, k])
         cn = np.array(alpha_n).sum()
         alpha_hat_lst.append(alpha_n/cn)
         c_lst.append(cn)
@@ -72,49 +72,10 @@ def compute_beta_hat(init_beta, A, c, gaus_pdfs):
         for j in range(J):
             beta_nk = []
             for k in range(K):
-                beta_nk.append(np.array(beta_hat_lst[-1])[k] * A[j, k] * gaus_pdfs[n, k])
+                beta_nk.append(np.array(beta_hat_lst[-1])[k] * A[j, k] * gaus_pdfs[n+1, k])
             beta_n.append(np.array(beta_nk).sum())
-        beta_hat_lst.append(beta_n/c[n])
+        beta_hat_lst.append(beta_n/c[n+1])
     return np.array(beta_hat_lst)[::-1]
-
-
-#def compute_alpha_hat(init_alpha, A, gaus_pdf):
-#    #  返り値alpha: 長さN, K次元のarray
-#    #  返り値c: 長さN-1, 1次元のarray
-#    alpha_lst = []
-#    init_hat_alpha = init_alpha / init_alpha.sum()
-#    alpha_hat_lst = [init_hat_alpha]
-#    c_lst = [init_alpha.sum()]
-#    J = A.shape[0]
-#    K = A.shape[1]
-#    for n in range(1, N):
-#        for k in range(K):
-#            sum_lst = []
-#            for j in range(J):
-#                sum_lst.append(np.array(alpha_hat_lst[-1])[j] * A[j, k])
-#            alpha_lst.append(np.array(sum_lst).sum())
-#        alpha_lst[-K::] = alpha_lst[-K::] * gaus_pdf[n]
-#        cn = np.array(alpha_lst[-K::]).sum()
-#        alpha_hat_lst.append(alpha_lst[-K::]/cn)
-#        c_lst.append(cn)
-#    return np.array(alpha_hat_lst), np.array(c_lst)
-#
-#
-#def compute_beta_hat(init_beta, A, c, gaus_pdf):
-#    #  返り値: 長さN, K次元のarray
-#    beta_lst = []
-#    beta_hat_lst = [init_beta]
-#    J = A.shape[0]
-#    K = A.shape[1]
-#    for n in range(N-1)[::-1]:
-#        for j in range(J):
-#            sum_lst = []
-#            for k in range(K):
-#                sum_lst.append(np.array(
-#                        beta_hat_lst[-1])[k] * A[j, k] * gaus_pdf[n, k])
-#            beta_lst.append(np.array(sum_lst).sum())
-#        beta_hat_lst.append(beta_lst[-K::]/c[n])
-#    return np.array(beta_hat_lst)[::-1]
 
 
 def compute_xi(A, alpha, beta, gaus_pdf, c):
@@ -143,18 +104,20 @@ if __name__ == '__main__':
 
     #  サンプルデータ生成
     sampler = hidden_markov_models.GaussianHMM()
-    X = sampler(10000, complete_data=False)
+    X, Z = sampler(10000, complete_data=True)
     N = X.shape[0]
 
     #    パラメタ初期値設定
     pi = np.array([0.4, 0.3, 0.3])
     #  式(13.18)
-    A = np.array([[0.88, 0.111, 0.009],
-                  [0.04, 0.9, 0.06],
-                  [0.002, 0.098, 0.9]
+    A = np.array([[0.99, 0.009, 0.001],
+                  [0.05, 0.9, 0.05],
+                  [0.001, 0.009, 0.99]
                   ])
     mean = np.arange(1, K+1)
     var = np.arange(1, K+1)
+#    mean = np.array([-15, 0, 30])
+#    var = np.array([1, 10, 2])
 
     #    パラメタ初期値での対数尤度
     log_lkh_lst = []
@@ -162,7 +125,6 @@ if __name__ == '__main__':
     log_lkh_lst.append(log_lkh)
     prev_log_lkh = - np.inf
     init_beta = np.ones(K)
-    gaus_pdf = gaussian_pdfs(X, mean, var)
 
     for iteration in np.arange(max_iter):
 #        assert prev_log_lkh < log_lkh
@@ -175,7 +137,7 @@ if __name__ == '__main__':
         alpha_hat, c = compute_alpha_hat(init_alpha, A, gaus_pdfs)
         beta_hat = compute_beta_hat(init_beta, A, c, gaus_pdfs)
         gammas = alpha_hat * beta_hat
-        xis = compute_xi(A, alpha_hat, beta_hat, gaus_pdf, c)
+        xis = compute_xi(A, alpha_hat, beta_hat, gaus_pdfs, c)
         #  Mステップ(パラメタ値を再計算)
         #  式(9.27), スカラー
         Ns = gammas.sum(0)
@@ -241,7 +203,7 @@ if __name__ == '__main__':
 
         #  対数尤度のグラフ
         plt.plot(np.array(log_lkh_lst))
-        plt.ylim(-58000, -35000)
+        plt.ylim(-35000, -25000)
         plt.title("log-likelihood")
         plt.grid()
         plt.show()
