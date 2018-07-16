@@ -196,7 +196,7 @@ if __name__ == '__main__':
 
         #  式(13.19), K*Kのarray
         sum_xis = xis.sum(0)
-        A /= sum_xis.sum(1, keepdims=True)
+        A = sum_xis / sum_xis.sum(1, keepdims=True)
 
         #  対数尤度の計算
         log_lkh = loglikelihoods(X, mean, var, pi)
