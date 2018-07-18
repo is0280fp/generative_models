@@ -38,8 +38,8 @@ def compute_alpha_hat(init_alpha, A, gaus_pdfs):
     alpha_hat_lst = [init_alpha_hat]
     c_lst = [init_alpha.sum()]
     for n in range(1, N):
-        alpha_n = (np.array(alpha_hat_lst[-1]) * A.transpose()).sum(
-                1) * gaus_pdfs[n]
+        alpha_n = (np.array(alpha_hat_lst[-1]) * A.transpose()).sum(1)
+            * gaus_pdfs[n]
         cn = alpha_n.sum()
         alpha_hat_n = alpha_n/cn
         alpha_hat_lst.append(alpha_hat_n)
@@ -66,8 +66,8 @@ def compute_xi(A, alpha, beta, gaus_pdf, c):
     gaus_pdf = gaus_pdf[1:]
     c = c[1:]
     for n in range(N-1):
-        xi_n = (np.ones((K, K)) * alpha[n]).transpose() * gaus_pdf[
-                n] * A * beta[n] * 1/c[n]
+        xi_n = (np.ones((K, K)) * alpha[n]).transpose() * gaus_pdf[n] * A
+            * beta[n] * 1/c[n]
         xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     #  サンプルデータ生成
     sampler = hidden_markov_models.GaussianHMM()
-    Z, X = sampler(10000, complete_data=True)
+    X = sampler(10000, complete_data=False)
     N = X.shape[0]
 
     #    パラメタ初期値設定
@@ -128,8 +128,8 @@ if __name__ == '__main__':
         var = []
         #  式(9.25), 式(13.21)
         for k in range(K):
-            var_k = (gammas[::, k] * (X - mean[k]) * (X - mean[k]).transpose(
-                    )).sum() / Ns[k]
+            var_k = (gammas[::, k]
+                * (X - mean[k]) * (X - mean[k]).transpose()).sum() / Ns[k]
             var.append(var_k)
         var = np.array(var)
 
