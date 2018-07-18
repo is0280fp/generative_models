@@ -67,7 +67,7 @@ def compute_xi(A, alpha, beta, gaus_pdf, c):
     c = c[1:]
     for n in range(N-1):
         xi_n = (np.ones((K, K)) * alpha[n]).transpose() * gaus_pdf[n] * A
-            * beta[n] * 1/c[n]
+            * beta[n] / c[n]
         xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
