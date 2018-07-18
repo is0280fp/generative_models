@@ -68,13 +68,14 @@ def compute_xi(A, alpha, beta, gaus_pdf, c):
     c = c[1:]
     for n in range(N-1):
         xi_n = (np.ones((K, K))
-            * alpha[n]).T * gaus_pdf[n] * A * beta[n] / c[n]
+                * alpha[n]).T * gaus_pdf[n] * A * beta[n] / c[n]
         xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
 
 if __name__ == '__main__':
     #  ハイパーパラメータ、ユーザが入力する
+    np.random.seed(0)
     K = 3
     max_iter = 1000
     tol = 1e-10
@@ -98,12 +99,8 @@ if __name__ == '__main__':
     log_lkh_lst = []
     log_lkh = -np.inf
     log_lkh_lst.append(log_lkh)
-    prev_log_lkh = - np.inf
 
     for iteration in np.arange(max_iter):
-        assert prev_log_lkh < log_lkh
-        prev_log_lkh = np.sum(np.log(c))
-
         #  Eステップ(負担率の計算)
         #  gaus_pdf = p(Xn|Zn), shape(N, K)のarray
         gaus_pdfs = gaussian_pdfs(X, mean, var)
@@ -127,7 +124,7 @@ if __name__ == '__main__':
         #  式(9.25), 式(13.21)
         for k in range(K):
             var_k = (gammas[:, k]
-                * (X - mean[k]) * (X - mean[k]).T).sum() / Ns[k]
+                     * (X - mean[k]) * (X - mean[k]).T).sum() / Ns[k]
             var.append(var_k)
         var = np.array(var)
 
@@ -136,8 +133,10 @@ if __name__ == '__main__':
         A = sum_xis / sum_xis.sum(1, keepdims=True)
 
         #  対数尤度の計算
+        prev_log_lkh = log_lkh
         log_lkh = np.sum(np.log(c))
         log_lkh_lst.append(log_lkh)
+        assert prev_log_lkh < log_lkh
 
         #  収束判定
         diff = log_lkh - prev_log_lkh
