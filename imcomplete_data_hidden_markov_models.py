@@ -31,16 +31,6 @@ def gaussian_pdfs(x, mean, var):
     return np.array(lkh).transpose()
 
 
-def loglikelihoods(c):
-    """
-    式(13.63)
-    """
-    cn = 0
-    for i in range(len(c)):
-            cn += np.log(c[i])
-    return cn
-
-
 def compute_alpha_hat(init_alpha, A, gaus_pdfs):
     #  返り値alpha: 長さN, K次元のarray
     #  返り値c: 長さN-1, 1次元のarray
@@ -51,7 +41,8 @@ def compute_alpha_hat(init_alpha, A, gaus_pdfs):
         alpha_n = (np.array(alpha_hat_lst[-1]) * A.transpose()).sum(
                 1) * gaus_pdfs[n]
         cn = alpha_n.sum()
-        alpha_hat_lst.append(alpha_n/cn)
+        alpha_hat_n = alpha_n/cn
+        alpha_hat_lst.append(alpha_hat_n)
         c_lst.append(cn)
     return np.array(alpha_hat_lst), np.array(c_lst)
 
@@ -61,7 +52,8 @@ def compute_beta_hat(init_beta, A, c, gaus_pdfs):
     beta_hat_lst = [init_beta]
     for n in range(N-1)[::-1]:
         beta_n = (np.array(beta_hat_lst[-1]) * A * gaus_pdfs[n+1]).sum(1)
-        beta_hat_lst.append(beta_n/c[n+1])
+        beta_hat_n = beta_n/c[n+1]
+        beta_hat_lst.append(beta_hat_n)
     return np.array(beta_hat_lst)[::-1]
 
 
@@ -74,8 +66,9 @@ def compute_xi(A, alpha, beta, gaus_pdf, c):
     gaus_pdf = gaus_pdf[1:]
     c = c[1:]
     for n in range(N-1):
-        xi_lst.append((np.ones((K, K)) * alpha[n]).transpose() * gaus_pdf[
-                n] * A * beta[n] * 1/c[n])
+        xi_n = (np.ones((K, K)) * alpha[n]).transpose() * gaus_pdf[
+                n] * A * beta[n] * 1/c[n]
+        xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
 
@@ -103,14 +96,14 @@ if __name__ == '__main__':
     #    パラメタ初期値での対数尤度
     log_lkh_lst = []
     c = np.ones(N) * 1e-100
-    log_lkh = loglikelihoods(c)
+    log_lkh = np.sum(np.log(c))
     log_lkh_lst.append(log_lkh)
     prev_log_lkh = - np.inf
     init_beta = np.ones(K)
 
     for iteration in np.arange(max_iter):
         assert prev_log_lkh < log_lkh
-        prev_log_lkh = loglikelihoods(c)
+        prev_log_lkh = np.sum(np.log(c))
         init_alpha = gaussian_pdfs(X[0], mean, var) * pi
 
         #  Eステップ(負担率の計算)
@@ -128,15 +121,16 @@ if __name__ == '__main__':
         mean = []
         #  式(9.24), 式(13.20)
         for k in range(K):
-            mean.append((gammas[::, k] * X).sum() / Ns[k])
+            mean_k = (gammas[::, k] * X).sum() / Ns[k]
+            mean.append(mean_k)
         mean = np.array(mean)
 
         var = []
         #  式(9.25), 式(13.21)
         for k in range(K):
-            var.append((
-                    gammas[::, k] * (X - mean[k]) * (X - mean[k]).transpose()
-                    ).sum() / Ns[k])
+            var_k = (gammas[::, k] * (X - mean[k]) * (X - mean[k]).transpose(
+                    )).sum() / Ns[k]
+            var.append(var_k)
         var = np.array(var)
 
         #  式(13.19), K*Kのarray
@@ -144,7 +138,7 @@ if __name__ == '__main__':
         A = sum_xis / sum_xis.sum(1, keepdims=True)
 
         #  対数尤度の計算
-        log_lkh = loglikelihoods(c)
+        log_lkh = np.sum(np.log(c))
         log_lkh_lst.append(log_lkh)
 
         #  収束判定
