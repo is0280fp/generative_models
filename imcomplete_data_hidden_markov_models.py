@@ -96,8 +96,7 @@ if __name__ == '__main__':
 
     #    パラメタ初期値での対数尤度
     log_lkh_lst = []
-    c = np.ones(N) * 1e-100
-    log_lkh = np.sum(np.log(c))
+    log_lkh = -np.inf
     log_lkh_lst.append(log_lkh)
     prev_log_lkh = - np.inf
 
