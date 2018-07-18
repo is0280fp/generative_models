@@ -31,28 +31,30 @@ def gaussian_pdfs(x, mean, var):
     return np.array(lkh).transpose()
 
 
-def compute_alpha_hat(init_alpha, A, gaus_pdfs):
+def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
     #  返り値alpha: 長さN, K次元のarray
     #  返り値c: 長さN-1, 1次元のarray
+    init_alpha = gaussian_pdfs(x[0], mean, var) * pi
     init_alpha_hat = init_alpha / init_alpha.sum()
     alpha_hat_lst = [init_alpha_hat]
     c_lst = [init_alpha.sum()]
     for n in range(1, N):
-        alpha_n = (np.array(alpha_hat_lst[-1]) * A.transpose()).sum(1)
-            * gaus_pdfs[n]
+        alpha_n = (alpha_hat_lst[-1]
+            * A.transpose()).sum(1) * gaus_pdfs[n]
         cn = alpha_n.sum()
-        alpha_hat_n = alpha_n/cn
+        alpha_hat_n = np.array(alpha_n / cn)
         alpha_hat_lst.append(alpha_hat_n)
         c_lst.append(cn)
     return np.array(alpha_hat_lst), np.array(c_lst)
 
 
-def compute_beta_hat(init_beta, A, c, gaus_pdfs):
+def compute_beta_hat(A, c, gaus_pdfs):
     #  返り値: 長さN, K次元のarray
+    init_beta = np.ones(K)
     beta_hat_lst = [init_beta]
     for n in range(N-1)[::-1]:
-        beta_n = (np.array(beta_hat_lst[-1]) * A * gaus_pdfs[n+1]).sum(1)
-        beta_hat_n = beta_n/c[n+1]
+        beta_n = (beta_hat_lst[-1] * A * gaus_pdfs[n+1]).sum(1)
+        beta_hat_n = np.array(beta_n / c[n+1])
         beta_hat_lst.append(beta_hat_n)
     return np.array(beta_hat_lst)[::-1]
 
@@ -66,8 +68,8 @@ def compute_xi(A, alpha, beta, gaus_pdf, c):
     gaus_pdf = gaus_pdf[1:]
     c = c[1:]
     for n in range(N-1):
-        xi_n = (np.ones((K, K)) * alpha[n]).transpose() * gaus_pdf[n] * A
-            * beta[n] / c[n]
+        xi_n = (np.ones((K, K))
+            * alpha[n]).transpose() * gaus_pdf[n] * A * beta[n] / c[n]
         xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
@@ -99,18 +101,16 @@ if __name__ == '__main__':
     log_lkh = np.sum(np.log(c))
     log_lkh_lst.append(log_lkh)
     prev_log_lkh = - np.inf
-    init_beta = np.ones(K)
 
     for iteration in np.arange(max_iter):
         assert prev_log_lkh < log_lkh
         prev_log_lkh = np.sum(np.log(c))
-        init_alpha = gaussian_pdfs(X[0], mean, var) * pi
 
         #  Eステップ(負担率の計算)
         #  gaus_pdf = p(Xn|Zn), shape(N, K)のarray
         gaus_pdfs = gaussian_pdfs(X, mean, var)
-        alpha_hat, c = compute_alpha_hat(init_alpha, A, gaus_pdfs)
-        beta_hat = compute_beta_hat(init_beta, A, c, gaus_pdfs)
+        alpha_hat, c = compute_alpha_hat(X, mean, var, pi, A, gaus_pdfs)
+        beta_hat = compute_beta_hat(A, c, gaus_pdfs)
         gammas = alpha_hat * beta_hat
         xis = compute_xi(A, alpha_hat, beta_hat, gaus_pdfs, c)
 
@@ -121,14 +121,14 @@ if __name__ == '__main__':
         mean = []
         #  式(9.24), 式(13.20)
         for k in range(K):
-            mean_k = (gammas[::, k] * X).sum() / Ns[k]
+            mean_k = (gammas[:, k] * X).sum() / Ns[k]
             mean.append(mean_k)
         mean = np.array(mean)
 
         var = []
         #  式(9.25), 式(13.21)
         for k in range(K):
-            var_k = (gammas[::, k]
+            var_k = (gammas[:, k]
                 * (X - mean[k]) * (X - mean[k]).transpose()).sum() / Ns[k]
             var.append(var_k)
         var = np.array(var)
