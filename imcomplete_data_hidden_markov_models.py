@@ -62,13 +62,8 @@ def compute_xi(A, alpha, beta, gaus_pdf, c):
     #  返り値: K*Kのarray, 長さN-1
     K = A.shape[1]
     xi_lst = []
-    alpha = alpha[:-1]
-    beta = beta[1:]
-    gaus_pdf = gaus_pdf[1:]
-    c = c[1:]
-    for n in range(N-1):
-        xi_n = (np.ones((K, K))
-                * alpha[n]).T * gaus_pdf[n] * A * beta[n] / c[n]
+    for n in range(1, N):
+        xi_n = alpha[n-1].reshape(3, 1) * gaus_pdf[n] * A * beta[n] / c[n]
         xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
