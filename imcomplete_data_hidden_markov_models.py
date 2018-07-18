@@ -47,16 +47,10 @@ def compute_alpha_hat(init_alpha, A, gaus_pdfs):
     init_alpha_hat = init_alpha / init_alpha.sum()
     alpha_hat_lst = [init_alpha_hat]
     c_lst = [init_alpha.sum()]
-    J = A.shape[0]
-    K = A.shape[1]
     for n in range(1, N):
-        alpha_n = []
-        for k in range(K):
-            alpha_nk = []
-            for j in range(J):
-                alpha_nk.append(np.array(alpha_hat_lst[-1])[j] * A[j, k])
-            alpha_n.append(np.array(alpha_nk).sum() * gaus_pdfs[n, k])
-        cn = np.array(alpha_n).sum()
+        alpha_n = (np.array(alpha_hat_lst[-1]) * A.transpose()).sum(
+                1) * gaus_pdfs[n]
+        cn = alpha_n.sum()
         alpha_hat_lst.append(alpha_n/cn)
         c_lst.append(cn)
     return np.array(alpha_hat_lst), np.array(c_lst)
@@ -65,34 +59,23 @@ def compute_alpha_hat(init_alpha, A, gaus_pdfs):
 def compute_beta_hat(init_beta, A, c, gaus_pdfs):
     #  返り値: 長さN, K次元のarray
     beta_hat_lst = [init_beta]
-    J = A.shape[0]
-    K = A.shape[1]
     for n in range(N-1)[::-1]:
-        beta_n = []
-        for j in range(J):
-            beta_nk = []
-            for k in range(K):
-                beta_nk.append(np.array(beta_hat_lst[-1])[k] * A[j, k] * gaus_pdfs[n+1, k])
-            beta_n.append(np.array(beta_nk).sum())
+        beta_n = (np.array(beta_hat_lst[-1]) * A * gaus_pdfs[n+1]).sum(1)
         beta_hat_lst.append(beta_n/c[n+1])
     return np.array(beta_hat_lst)[::-1]
 
 
 def compute_xi(A, alpha, beta, gaus_pdf, c):
     #  返り値: K*Kのarray, 長さN-1
+    K = A.shape[1]
     xi_lst = []
     alpha = alpha[:-1]
     beta = beta[1:]
     gaus_pdf = gaus_pdf[1:]
     c = c[1:]
-    J = A.shape[0]
-    K = A.shape[1]
     for n in range(N-1):
-        for j in range(J):
-            for k in range(K):
-                xi_lst.append(
-                        alpha[n, j] * gaus_pdf[n, k] * A[
-                                j, k] * beta[n, k] * 1/c[n])
+        xi_lst.append((np.ones((K, K)) * alpha[n]).transpose() * gaus_pdf[
+                n] * A * beta[n] * 1/c[n])
     return np.array(xi_lst).reshape(-1, K, K)
 
 
@@ -137,6 +120,7 @@ if __name__ == '__main__':
         beta_hat = compute_beta_hat(init_beta, A, c, gaus_pdfs)
         gammas = alpha_hat * beta_hat
         xis = compute_xi(A, alpha_hat, beta_hat, gaus_pdfs, c)
+
         #  Mステップ(パラメタ値を再計算)
         #  式(9.27), スカラー
         Ns = gammas.sum(0)
@@ -162,6 +146,7 @@ if __name__ == '__main__':
         #  対数尤度の計算
         log_lkh = loglikelihoods(c)
         log_lkh_lst.append(log_lkh)
+
         #  収束判定
         diff = log_lkh - prev_log_lkh
         if diff < tol:
@@ -194,7 +179,7 @@ if __name__ == '__main__':
         for k in range(K):
             pdfs.append(gaussian_pdf(x_scope, mean[k], var[k]))
         pdfs = np.array(pdfs)
-        plt.plot(x_scope, pdfs.sum(axis=0))
+        plt.plot(x_scope, pdfs.sum(0))
         plt.ylim(0, 0.5)
         plt.title("pdf")
         plt.show()
@@ -208,6 +193,7 @@ if __name__ == '__main__':
         print("diff", diff)
         print("-----------------------------------------------------------------------")
 
+    #  推定用サンプルを可視化
     print("real data")
     sampler.visualize(X)
     print("Distribution: ", sampler.get_name())
@@ -223,6 +209,7 @@ if __name__ == '__main__':
         x_new.append(np.random.normal(
                 mean[int(z_new[-1])], std[int(z_new[-1])], 1))
 
+    #  推定したパラメタモデルを使って生成したサンプルを可視化
     x_new = np.array(x_new)
     print("create data")
     sampler.visualize(x_new)
