@@ -28,7 +28,7 @@ def gaussian_pdfs(x, mean, var):
     lkh = []
     for mean_k, var_k in zip(mean, var):
         lkh.append(gaussian_pdf(x, mean_k, var_k))
-    return np.array(lkh).transpose()
+    return np.array(lkh).T
 
 
 def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
@@ -39,8 +39,7 @@ def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
     alpha_hat_lst = [init_alpha_hat]
     c_lst = [init_alpha.sum()]
     for n in range(1, N):
-        alpha_n = (alpha_hat_lst[-1]
-            * A.transpose()).sum(1) * gaus_pdfs[n]
+        alpha_n = (alpha_hat_lst[-1] * A.T).sum(1) * gaus_pdfs[n]
         cn = alpha_n.sum()
         alpha_hat_n = np.array(alpha_n / cn)
         alpha_hat_lst.append(alpha_hat_n)
@@ -69,7 +68,7 @@ def compute_xi(A, alpha, beta, gaus_pdf, c):
     c = c[1:]
     for n in range(N-1):
         xi_n = (np.ones((K, K))
-            * alpha[n]).transpose() * gaus_pdf[n] * A * beta[n] / c[n]
+            * alpha[n]).T * gaus_pdf[n] * A * beta[n] / c[n]
         xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
@@ -129,7 +128,7 @@ if __name__ == '__main__':
         #  式(9.25), 式(13.21)
         for k in range(K):
             var_k = (gammas[:, k]
-                * (X - mean[k]) * (X - mean[k]).transpose()).sum() / Ns[k]
+                * (X - mean[k]) * (X - mean[k]).T).sum() / Ns[k]
             var.append(var_k)
         var = np.array(var)
 
