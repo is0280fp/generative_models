@@ -177,6 +177,7 @@ if __name__ == '__main__':
     print("mean:", mean)
     print("std:", std)
 
+    #  以下, viterbiアルゴリズムで推論
     Z_new, X_new = sampler(2000, complete_data=True)
     Z_hat = viterbi(X_new, mean, var, pi, A)
     #  PRMLのP. 150の識別不可能性のせいで
