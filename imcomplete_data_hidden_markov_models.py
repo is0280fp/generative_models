@@ -51,6 +51,7 @@ def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
 def compute_beta_hat(A, c, gaus_pdfs):
     #  返り値: 長さN, K次元のarray
     N = gaus_pdfs.shape[0]
+    K = gaus_pdfs.shape[1]
     init_beta = np.ones(K)
     beta_hat_lst = [init_beta]
     for n in range(N-1)[::-1]:
@@ -60,13 +61,13 @@ def compute_beta_hat(A, c, gaus_pdfs):
     return np.array(beta_hat_lst)[::-1]
 
 
-def compute_xi(A, alpha, beta, gaus_pdf, c):
+def compute_xi(A, alpha, beta, gaus_pdfs, c):
     #  返り値: K*Kのarray, 長さN-1
     N = gaus_pdfs.shape[0]
     K = A.shape[1]
     xi_lst = []
     for n in range(1, N):
-        xi_n = alpha[n-1].reshape(3, 1) * gaus_pdf[n] * A * beta[n] / c[n]
+        xi_n = alpha[n-1].reshape(3, 1) * gaus_pdfs[n] * A * beta[n] / c[n]
         xi_lst.append(xi_n)
     return np.array(xi_lst).reshape(-1, K, K)
 
