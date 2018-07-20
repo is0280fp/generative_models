@@ -34,6 +34,7 @@ def gaussian_pdfs(x, mean, var):
 def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
     #  返り値alpha: 長さN, K次元のarray
     #  返り値c: 長さN-1, 1次元のarray
+    N = gaus_pdfs.shape[0]
     init_alpha = gaussian_pdfs(x[0], mean, var) * pi
     init_alpha_hat = init_alpha / init_alpha.sum()
     alpha_hat_lst = [init_alpha_hat]
@@ -49,6 +50,7 @@ def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
 
 def compute_beta_hat(A, c, gaus_pdfs):
     #  返り値: 長さN, K次元のarray
+    N = gaus_pdfs.shape[0]
     init_beta = np.ones(K)
     beta_hat_lst = [init_beta]
     for n in range(N-1)[::-1]:
@@ -60,6 +62,7 @@ def compute_beta_hat(A, c, gaus_pdfs):
 
 def compute_xi(A, alpha, beta, gaus_pdf, c):
     #  返り値: K*Kのarray, 長さN-1
+    N = gaus_pdfs.shape[0]
     K = A.shape[1]
     xi_lst = []
     for n in range(1, N):
@@ -177,7 +180,7 @@ if __name__ == '__main__':
         plt.grid()
         plt.show()
         print("diff", diff)
-        print("-----------------------------------------------------------------------")
+        print("--------------------------------------------------------------")
 
     #  推定用サンプルを可視化
     print("real data")
