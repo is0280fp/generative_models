@@ -15,10 +15,11 @@ from imcomplete_data_hidden_markov_models import compute_beta_hat
 from imcomplete_data_hidden_markov_models import compute_xi
 
 
-def compute_omega(gaus_pdfs, pi, A):
+def viterbi(X, mean, var, pi, A):
     '''
     #  式(13.68)
     '''
+    gaus_pdfs = gaussian_pdfs(X, mean, var)
     #  返り値: N×K
     N = gaus_pdfs.shape[0]
     K = gaus_pdfs.shape[1]
@@ -35,11 +36,11 @@ def compute_omega(gaus_pdfs, pi, A):
     argmax_omega_lst = np.array(argmax_omega_lst)
     argmax_omega_N = np.argmax(omega_n)
     #  backward
-    predicted_z_lst = [argmax_omega_N]
+    infered_z_lst = [argmax_omega_N]
     for n in range(N-1)[::-1]:
-        argmax_num = predicted_z_lst[-1]
-        predicted_z_lst.append(argmax_omega_lst[n, argmax_num])
-    return np.array(predicted_z_lst)[::-1]
+        argmax_num = infered_z_lst[-1]
+        infered_z_lst.append(argmax_omega_lst[n, argmax_num])
+    return np.array(infered_z_lst)[::-1]
 
 
 if __name__ == '__main__':
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     max_iter = 1000
     tol = 1e-10
 
-#    #  サンプルデータ生成
+    #  サンプルデータ生成
     sampler = hidden_markov_models.GaussianHMM()
     Z, X = sampler(10000, complete_data=True)
     N = X.shape[0]
@@ -171,14 +172,22 @@ if __name__ == '__main__':
     x_new = np.array(x_new)
     print("create data")
     sampler.visualize(x_new)
+    plt.show()
     print("transition_matrix:", A)
     print("mean:", mean)
     print("std:", std)
 
-    predicted_z = compute_omega(gaus_pdfs, pi, A)
-    plt.figure()
-    plt.title("real Z")
-    plt.plot(Z, ".")
-    plt.figure()
-    plt.title("predicted Z")
-    plt.plot(predicted_z, ".")
+    Z_new, X_new = sampler(2000, complete_data=True)
+    Z_hat = viterbi(X_new, mean, var, pi, A)
+    #  PRMLのP. 150の識別不可能性のせいで
+    #  Z_hatの状態番号とZの対応とZ_newの状態番号とZの対応がとれていない
+    #  Z_hatの状態番号をZ_newの状態番号に対応される
+    sort_num = np.argsort(mean)
+    sort_num = np.argsort(sort_num)
+    renumbered_Z_hat = sort_num[Z_hat]
+
+    plt.title("compare to Z")
+    plt.plot(Z_new, "b-", linewidth=2, alpha=1)
+    plt.plot(renumbered_Z_hat, "r-", linewidth=2, alpha=0.5)
+    plt.legend(["Z_new", "renumbered_Z_hat"])
+    plt.show()
