@@ -3,9 +3,8 @@
 Created on Mon Apr 23 12:30:17 2018
 @author: yume
 パターン認識と機械学習　下
-p.154-155参照
+p.333-347参照
 """
-
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,6 +31,9 @@ def gaussian_pdfs(x, mean, var):
 
 
 def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
+    """
+    式(13.36), (13.37), (13.59)
+    """
     #  返り値alpha: 長さN, K次元のarray
     #  返り値c: 長さN-1, 1次元のarray
     N = gaus_pdfs.shape[0]
@@ -49,6 +51,9 @@ def compute_alpha_hat(x, mean, var, pi, A, gaus_pdfs):
 
 
 def compute_beta_hat(A, c, gaus_pdfs):
+    """
+    式(13.38), (13.61)
+    """
     #  返り値: 長さN, K次元のarray
     N = gaus_pdfs.shape[0]
     K = gaus_pdfs.shape[1]
@@ -62,6 +67,9 @@ def compute_beta_hat(A, c, gaus_pdfs):
 
 
 def compute_xi(A, alpha, beta, gaus_pdfs, c):
+    """
+    式(13.43), (13.65)
+    """
     #  返り値: K*Kのarray, 長さN-1
     N = gaus_pdfs.shape[0]
     K = A.shape[1]
@@ -74,7 +82,6 @@ def compute_xi(A, alpha, beta, gaus_pdfs, c):
 
 if __name__ == '__main__':
     #  ハイパーパラメータ、ユーザが入力する
-    np.random.seed(0)
     K = 3
     max_iter = 1000
     tol = 1e-10
@@ -190,14 +197,13 @@ if __name__ == '__main__':
     print("Parameters: ", sampler.get_params())
 
     #  推定したパラメタモデルを使って新たなサンプルを生成
-    z_1 = np.random.choice(K, 1, p=pi)
-    x_1 = np.random.normal(mean[z_1], std[z_1], 1)
+    z_1 = np.random.choice(K, p=pi)
+    x_1 = np.random.normal(mean[z_1], std[z_1])
     z_new = [z_1]
     x_new = [x_1]
     for i in np.arange(1, N):
-        z_new.append(np.random.choice(K, 1, p=A[int(z_new[-1])]))
-        x_new.append(np.random.normal(
-                mean[int(z_new[-1])], std[int(z_new[-1])], 1))
+        z_new.append(np.random.choice(K, p=A[z_new[-1]]))
+        x_new.append(np.random.normal(mean[z_new[-1]], std[z_new[-1]]))
 
     #  推定したパラメタモデルを使って生成したサンプルを可視化
     x_new = np.array(x_new)
